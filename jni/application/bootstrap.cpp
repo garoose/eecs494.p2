@@ -5,7 +5,9 @@
  */
 
 #include <zenilib.h>
+#include <string>
 #include "Buggy.h"
+#include "map.h"
 
 #if defined(_DEBUG) && defined(_WINDOWS)
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -23,6 +25,8 @@ class Play_State : public Gamestate_Base
 public:
 	Play_State()
 	  : game_resolution(1024.0f, 768.0f),
+	  tile_size(64),
+	  map1("assets/map1.txt"),
 	  m_time_passed(0.0f),
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
@@ -36,6 +40,8 @@ public:
 
 private:
   Vector2f game_resolution;
+  float tile_size;
+  Map map1;
 
   Buggy m_buggy;
 
@@ -54,7 +60,6 @@ private:
     get_Window().mouse_hide(false);
     //get_Game().joy_mouse.enabled = true;
   }
-
 
   Zeni::Time m_current_time;
   Chronometer<Time> m_chrono;
@@ -94,8 +99,31 @@ private:
 	  time_step = 0.0f;
   }
 
+  void Play_State::render_tile(int x, int y)
+  {
+	  Video &vr = get_Video();
+
+	  Vertex2f_Texture p0(Point2f(x, y), Point2f(0.0f, 0.0f));
+	  Vertex2f_Texture p1(Point2f(x, y + tile_size), Point2f(0.0f, 1.0f));
+	  Vertex2f_Texture p2(Point2f(x + tile_size, y + tile_size), Point2f(1.0f, 1.0f));
+	  Vertex2f_Texture p3(Point2f(x + tile_size, y), Point2f(1.0f, 0.0f));
+	  Material material(map1.get_texture(x, y).c_str());
+
+	  Quadrilateral<Vertex2f_Texture> quad(p0, p1, p2, p3);
+	  quad.fax_Material(&material);
+
+	  vr.render(quad);
+  }
+
   void Play_State::render_bg(Video &vr)
   {
+	  for (int x = 0; x < game_resolution.x / tile_size; x++) {
+		  for (int y = 0; y < game_resolution.y / tile_size; y++) {
+			  //render_tile(x, y);
+		  }
+	  }
+
+	  /*
 	  Color c = get_Colors()["red"];
 
 	  Vertex2f_Color p0(Point2f(0.0f, 0.0f), c); //Point2f(0.0f, 0.0f));
@@ -120,7 +148,7 @@ private:
 	  Quadrilateral<Vertex2f_Color> quad2(p00, p11, p22, p33);
 	  //quad.fax_Material(&material);
 
-	  vr.render(quad2);
+	  vr.render(quad2);*/
   }
 
   void Play_State::render() {
