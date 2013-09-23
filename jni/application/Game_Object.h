@@ -21,6 +21,15 @@ public:
 	virtual ~Game_Object() {}
 
 	virtual void render() const = 0; // pure virtual function call
+	virtual bool can_move(const Vector2f &delta_) {
+		//fix dese magic numbers yo
+		if ((m_position.x + delta_.i) < 0 || (m_position.x + m_size.i + delta_.i) > 1024.0f)
+			return false;
+		if ( (m_position.y + m_size.j + delta_.j) > 768.0f)
+			return false;
+
+		return true;
+	}
 
 public:
 	const Point2f & get_position() const { return m_position; }
@@ -38,9 +47,20 @@ public:
 	}
 
 	void move_forward(const float &move_) {
-		// Performance consideration: calculate and store a forward Vector2f when turning and avoid cosine & sine here?
-		m_position.x += move_ * cos(m_theta);
-		m_position.y += move_ * -sin(m_theta);
+		Vector2f delta(move_ * cos(m_theta), move_ * -sin(m_theta));
+		
+		if (can_move(delta)) {
+			// Performance consideration: calculate and store a forward Vector2f when turning and avoid cosine & sine here?
+			m_position.x += delta.i;
+			m_position.y += delta.j;
+		}
+	}
+
+	void move_down(const float &move_) {
+		float deltay = move_;
+
+		if (can_move(Vector2f(0.0f, deltay)))
+			m_position.y += deltay;
 	}
 
 protected:

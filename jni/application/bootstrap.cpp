@@ -21,11 +21,12 @@ class Play_State : public Gamestate_Base
 	Play_State operator=(const Play_State &);
 
 public:
-  Play_State()
-	  : m_time_passed(0.0f),
+	Play_State()
+	  : game_resolution(1024.0f, 768.0f),
+	  m_time_passed(0.0f),
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
-	  m_buggy(Point2f(100.0f, 100.0f), Vector2f(256.0f, 128.0f), 0, 150.0f)
+	  m_buggy(Point2f(50.0f, 200.0f), Vector2f(256.0f, 128.0f), Global::pi / 4, 150.0f)
   {
 	  // If our game has no real time component in real life, allow the user to pause the game.
 	  // This would be a BAD idea in a networked multiplayer mode for a game.
@@ -34,6 +35,8 @@ public:
   }
 
 private:
+  Vector2f game_resolution;
+
   Buggy m_buggy;
 
   void on_push() {
@@ -52,14 +55,6 @@ private:
     //get_Game().joy_mouse.enabled = true;
   }
 
-  struct Controls {
-	  Controls() : left(false), right(false), up(false), down(false) {}
-
-	  bool left;
-	  bool right;
-	  bool up;
-	  bool down;
-  } m_controls;
 
   Zeni::Time m_current_time;
   Chronometer<Time> m_chrono;
@@ -68,33 +63,9 @@ private:
   float m_max_time_steps; //< Optional
 
   void Play_State::on_key(const SDL_KeyboardEvent &event) {
-	  switch (event.keysym.sym) {
-	  case SDLK_LEFT:
-		  m_controls.left = event.type == SDL_KEYDOWN;
-		  break;
+	  m_buggy.on_key(event);
 
-	  case SDLK_RIGHT:
-		  m_controls.right = event.type == SDL_KEYDOWN;
-		  break;
-
-	  case SDLK_UP:
-		  m_controls.up = event.type == SDL_KEYDOWN;
-		  break;
-
-	  case SDLK_DOWN:
-		  m_controls.down = event.type == SDL_KEYDOWN;
-		  break;
-
-	  default:
-		  Gamestate_Base::on_key(event);
-	  }
-  }
-
-  void step(const float &time_step) {
-	  // without a multiplier, this will rotate a full turn after ~6.28s
-	  m_buggy.turn_left((m_controls.up - m_controls.down) * time_step);
-	  // without the '100.0f', it would move at ~1px/s
-	  m_buggy.move_forward((m_controls.right - m_controls.left) * time_step * m_buggy.get_speed());
+	  Gamestate_Base::on_key(event);
   }
 
   void perform_logic() {
@@ -114,28 +85,42 @@ private:
 		  time_step = m_max_time_steps * m_max_time_step;
 
 	  while (time_step > m_max_time_step) {
-		  step(time_step);
+		  m_buggy.step(time_step);
+
 		  time_step -= m_max_time_step;
 	  }
 
-	  step(time_step);
+	  m_buggy.step(time_step);
 	  time_step = 0.0f;
   }
 
   void Play_State::render_bg(Video &vr)
   {
-	  Color c = get_Colors()["green"];
+	  Color c = get_Colors()["red"];
 
 	  Vertex2f_Color p0(Point2f(0.0f, 0.0f), c); //Point2f(0.0f, 0.0f));
-	  Vertex2f_Color p1(Point2f(0.0f, get_Window().get_height()), c); //Point2f(0.0f, 1.0f));
-	  Vertex2f_Color p2(Point2f(get_Window().get_width(), get_Window().get_height()), c); //Point2f(1.0f, 1.0f));
-	  Vertex2f_Color p3(Point2f(get_Window().get_width(), 0.0f), c); //Point2f(1.0f, 0.0f));
+	  Vertex2f_Color p1(Point2f(0.0f, game_resolution.j), c); //Point2f(0.0f, 1.0f));
+	  Vertex2f_Color p2(Point2f(game_resolution.i, game_resolution.j), c); //Point2f(1.0f, 1.0f));
+	  Vertex2f_Color p3(Point2f(game_resolution.i, 0.0f), c); //Point2f(1.0f, 0.0f));
 	  //Material material("tire");
 
 	  Quadrilateral<Vertex2f_Color> quad(p0, p1, p2, p3);
 	  //quad.fax_Material(&material);
 
 	  vr.render(quad);
+
+	  c = get_Colors()["brown"];
+
+	  Vertex2f_Color p00(Point2f(0.0f, 500.0f), c); //Point2f(0.0f, 0.0f));
+	  Vertex2f_Color p11(Point2f(0.0f, game_resolution.j), c); //Point2f(0.0f, 1.0f));
+	  Vertex2f_Color p22(Point2f(game_resolution.i, game_resolution.j), c); //Point2f(1.0f, 1.0f));
+	  Vertex2f_Color p33(Point2f(game_resolution.i, 500.0f), c); //Point2f(1.0f, 0.0f));
+	  //Material material("tire");
+
+	  Quadrilateral<Vertex2f_Color> quad2(p00, p11, p22, p33);
+	  //quad.fax_Material(&material);
+
+	  vr.render(quad2);
   }
 
   void Play_State::render() {
