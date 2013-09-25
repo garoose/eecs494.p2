@@ -13,7 +13,8 @@ public:
 		: m_position(position_),
 		m_size(size_),
 		m_theta(theta_),
-		m_speed(speed_)
+		m_speed(speed_),
+		forward(cos(theta_), -sin(theta_))
 	{
 	}
 
@@ -44,13 +45,14 @@ public:
 
 	void turn_left(const float &theta_) {
 		m_theta += theta_;
+
+		forward = Vector2f(cos(m_theta), -sin(m_theta));
 	}
 
 	void move_forward(const float &move_) {
-		Vector2f delta(move_ * cos(m_theta), move_ * -sin(m_theta));
+		Vector2f delta(move_ * forward.i, move_ * forward.j);
 		
 		if (can_move(delta)) {
-			// Performance consideration: calculate and store a forward Vector2f when turning and avoid cosine & sine here?
 			m_position.x += delta.i;
 			m_position.y += delta.j;
 		}
@@ -80,6 +82,7 @@ protected:
 private:
 	Point2f m_position; // Upper left corner
 	Vector2f m_size; // (width, height)
+	Vector2f forward;
 	float m_theta;
 
 	float m_speed;

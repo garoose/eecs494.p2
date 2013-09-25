@@ -26,7 +26,7 @@ public:
 	Play_State()
 	  : game_resolution(1024.0f, 768.0f),
 	  tile_size(64),
-	  map1("assets/map1.txt"),
+	  map1("maps/map1.txt"),
 	  m_time_passed(0.0f),
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
@@ -117,38 +117,7 @@ private:
 
   void Play_State::render_bg(Video &vr)
   {
-	  for (int x = 0; x < game_resolution.x / tile_size; x++) {
-		  for (int y = 0; y < game_resolution.y / tile_size; y++) {
-			  //render_tile(x, y);
-		  }
-	  }
-
-	  /*
-	  Color c = get_Colors()["red"];
-
-	  Vertex2f_Color p0(Point2f(0.0f, 0.0f), c); //Point2f(0.0f, 0.0f));
-	  Vertex2f_Color p1(Point2f(0.0f, game_resolution.j), c); //Point2f(0.0f, 1.0f));
-	  Vertex2f_Color p2(Point2f(game_resolution.i, game_resolution.j), c); //Point2f(1.0f, 1.0f));
-	  Vertex2f_Color p3(Point2f(game_resolution.i, 0.0f), c); //Point2f(1.0f, 0.0f));
-	  //Material material("tire");
-
-	  Quadrilateral<Vertex2f_Color> quad(p0, p1, p2, p3);
-	  //quad.fax_Material(&material);
-
-	  vr.render(quad);
-
-	  c = get_Colors()["brown"];
-
-	  Vertex2f_Color p00(Point2f(0.0f, 500.0f), c); //Point2f(0.0f, 0.0f));
-	  Vertex2f_Color p11(Point2f(0.0f, game_resolution.j), c); //Point2f(0.0f, 1.0f));
-	  Vertex2f_Color p22(Point2f(game_resolution.i, game_resolution.j), c); //Point2f(1.0f, 1.0f));
-	  Vertex2f_Color p33(Point2f(game_resolution.i, 500.0f), c); //Point2f(1.0f, 0.0f));
-	  //Material material("tire");
-
-	  Quadrilateral<Vertex2f_Color> quad2(p00, p11, p22, p33);
-	  //quad.fax_Material(&material);
-
-	  vr.render(quad2);*/
+	  map1.render_all(Point2f(0.0f, 0.0f), game_resolution);
   }
 
   void Play_State::render() {

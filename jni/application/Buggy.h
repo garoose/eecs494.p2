@@ -24,7 +24,7 @@ public:
 	}
 
 	bool can_move(const Vector2f &delta_) {
-		if (left_tire.y + tire_size + delta_.y >= 500.0f || right_tire.y + tire_size + delta_.y >= 500.0f)
+		if (left_tire.y + tire_size + delta_.y > 500.0f || right_tire.y + tire_size + delta_.y > 500.0f)
 			return false;
 
 		return Game_Object::can_move(delta_);
@@ -37,19 +37,23 @@ public:
 		move_forward((m_controls.right - m_controls.left) * time_step * get_speed());
 
 		//fall
-		if (left_tire.y + tire_size < 500.0f)
-			turn_left(time_step);
+		if (left_tire.y + tire_size < 500.0f && right_tire.y + tire_size < 500.0f)
+			move_down(time_step * 98.0f);
+		else {
+			m_jump.can_jump = true;
 
-		if (right_tire.y + tire_size < 500.0f)
-			turn_left(-time_step);
-
-		move_down(time_step * 98.0f);
+			if (left_tire.y + tire_size < 500.0f)
+				turn_left(-time_step);
+			else if (right_tire.y + tire_size < 500.0f)
+				turn_left(time_step);
+		}
 
 		//jump
-		if (m_jump.can_jump) {
+		if (m_jump.can_jump && m_controls.up) {
 			m_jump.height = 0;
 			m_jump.in_jump = true;
 			m_jump.can_jump = false;
+			m_controls.up = false;
 		}
 
 		if (m_jump.in_jump) {
@@ -61,6 +65,7 @@ public:
 				m_jump.in_jump = false;
 		}
 
+		//Attach the wheels
 		Point2f center(get_position().x + (get_size().i * 0.5f) - (tire_size * 0.5f), 
 					   get_position().y + (get_size().j * 0.5f) - (tire_size * 0.5f));
 		float distance = get_radius() - 50.0f;
