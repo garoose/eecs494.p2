@@ -14,9 +14,12 @@ using std::exception;
 
 static const vector<string> textures{ "blank", "ground" };
 
+static const float tile_size = 64.0f;
+
 struct Tile {
 	int id;
 	string texture;
+	float size;
 	
 public:
 	Tile::Tile(int id_) {
@@ -27,8 +30,6 @@ public:
 	void Tile::render(int x, int y)
 	{
 		Video &vr = get_Video();
-
-		int tile_size = 64;
 
 		Vertex2f_Texture p0(Point2f(x, y), Point2f(0.0f, 0.0f));
 		Vertex2f_Texture p1(Point2f(x, y + tile_size), Point2f(0.0f, 1.0f));
@@ -83,12 +84,13 @@ public:
 	}
 
 	void render_all(Point2f top_left, Vector2f game_resolution) {
-		float tile_size = 64;
+		for (int x = 0; x < game_resolution.x; x += tile_size) {
+			for (int y = 0; y < game_resolution.y; y += tile_size) {
+				float ty = (top_left.y + y) / tile_size;
+				float tx = (top_left.x + x) / tile_size;
 
-		for (int x = top_left.x; x < top_left.x + game_resolution.x; x += tile_size) {
-			for (int y = top_left.y; y < top_left.y + game_resolution.y; y += tile_size) {
-				if ((map.size() > y / tile_size) && (map[0].size() > x / tile_size))
-					get(x / tile_size, y / tile_size).render(x, y);
+				if ((map.size() > ty) && (map[0].size() > tx))
+					get(tx, ty).render(x, y);
 			}
 		}
 	}

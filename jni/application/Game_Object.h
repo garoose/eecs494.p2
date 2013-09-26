@@ -22,11 +22,9 @@ public:
 	virtual ~Game_Object() {}
 
 	virtual void render() const = 0; // pure virtual function call
+
 	virtual bool can_move(const Vector2f &delta_) {
-		//fix dese magic numbers yo
-		if ((m_position.x + delta_.i) < 0 || (m_position.x + m_size.i + delta_.i) > 1024.0f)
-			return false;
-		if ( (m_position.y + m_size.j + delta_.j) > 768.0f)
+		if ((m_position.x + delta_.x) < 0)
 			return false;
 
 		return true;

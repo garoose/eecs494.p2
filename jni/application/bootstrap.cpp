@@ -24,8 +24,8 @@ class Play_State : public Gamestate_Base
 
 public:
 	Play_State()
-	  : game_resolution(1024.0f, 768.0f),
-	  tile_size(64),
+	  : game_resolution(1280.0f, 768.0f),
+	  top_left(0.0f, 0.0f),
 	  map1("maps/map1.txt"),
 	  m_time_passed(0.0f),
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
@@ -40,7 +40,7 @@ public:
 
 private:
   Vector2f game_resolution;
-  float tile_size;
+  Point2f top_left;
   Map map1;
 
   Buggy m_buggy;
@@ -75,7 +75,6 @@ private:
 
   void perform_logic() {
 	  // Update time_passed
-
 	  const float time_passed = m_chrono.seconds();
 	  float time_step = time_passed - m_time_passed;
 	  m_time_passed = time_passed;
@@ -97,33 +96,20 @@ private:
 
 	  m_buggy.step(time_step);
 	  time_step = 0.0f;
-  }
 
-  void Play_State::render_tile(int x, int y)
-  {
-	  Video &vr = get_Video();
-
-	  Vertex2f_Texture p0(Point2f(x, y), Point2f(0.0f, 0.0f));
-	  Vertex2f_Texture p1(Point2f(x, y + tile_size), Point2f(0.0f, 1.0f));
-	  Vertex2f_Texture p2(Point2f(x + tile_size, y + tile_size), Point2f(1.0f, 1.0f));
-	  Vertex2f_Texture p3(Point2f(x + tile_size, y), Point2f(1.0f, 0.0f));
-	  Material material(map1.get_texture(x, y).c_str());
-
-	  Quadrilateral<Vertex2f_Texture> quad(p0, p1, p2, p3);
-	  quad.fax_Material(&material);
-
-	  vr.render(quad);
+	  if (m_buggy.get_position().x > (top_left.x + game_resolution.x) / 2)
+		  top_left.x += 128.0f;
   }
 
   void Play_State::render_bg(Video &vr)
   {
-	  map1.render_all(Point2f(0.0f, 0.0f), game_resolution);
+	  map1.render_all(top_left, game_resolution);
   }
 
   void Play_State::render() {
 	  Video &vr = get_Video();
 
-	  vr.set_2d(make_pair(Point2f(), Point2f(1024.0f, 768.0f)));
+	  vr.set_2d(make_pair(Point2f(), Point2f(game_resolution.x, game_resolution.y)));
 
 	  render_bg(vr);
 
