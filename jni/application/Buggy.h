@@ -5,6 +5,8 @@
 
 using namespace Zeni;
 
+enum jump_state { up, down };
+
 class Buggy : public Game_Object {
 public:
 	Buggy(const Point2f &position_,
@@ -34,35 +36,43 @@ public:
 		// without a multiplier, this will rotate a full turn after ~6.28s
 		//turn_left((m_controls.up - m_controls.down) * time_step);
 		// without the '100.0f', it would move at ~1px/s
-		move_forward((m_controls.right - m_controls.left) * time_step * get_speed());
+		if (m_jump.can_jump)
+			move_forward((m_controls.right - m_controls.left) * time_step * get_speed());
 
 		//fall
 		if (left_tire.y + tire_size < 500.0f && right_tire.y + tire_size < 500.0f)
 			move_down(time_step * 98.0f);
 		else {
 			m_jump.can_jump = true;
+			m_jump.in_jump = false;
 
 			if (left_tire.y + tire_size < 500.0f)
-				turn_left(-time_step);
+				turn_left(time_step * 2);
 			else if (right_tire.y + tire_size < 500.0f)
-				turn_left(time_step);
+				turn_left(-time_step * 2);
 		}
 
 		//jump
 		if (m_jump.can_jump && m_controls.up) {
 			m_jump.height = 0;
+			m_jump.move = (m_controls.right - m_controls.left) * time_step * get_speed();
 			m_jump.in_jump = true;
+			m_jump.state = up;
 			m_jump.can_jump = false;
 			m_controls.up = false;
 		}
 
 		if (m_jump.in_jump) {
-			float deltaj = time_step * m_jump.speed;
-			m_jump.height += deltaj;
-			move_down(-deltaj);
+			if (m_jump.state == up) {
+				float deltaj = time_step * m_jump.speed;
+				m_jump.height += deltaj;
+				move_down(-deltaj);
+			}
+
+			move_forward(m_jump.move);
 
 			if (m_jump.height >= m_jump.max_height)
-				m_jump.in_jump = false;
+				m_jump.state = down;
 		}
 
 		//Attach the wheels
@@ -114,6 +124,8 @@ private:
 		float speed;
 		float height;
 		float max_height;
+		float move;
+		jump_state state;
 	} m_jump;
 
 	float tire_size;

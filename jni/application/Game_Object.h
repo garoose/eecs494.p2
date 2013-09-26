@@ -50,8 +50,22 @@ public:
 	}
 
 	void move_forward(const float &move_) {
-		Vector2f delta(move_ * forward.i, move_ * forward.j);
+		Vector2f delta(move_ * forward.x, 0.0f);
 		
+		while (delta.x > 0 && !can_move(delta)) {
+			delta.x -= 0.0001f;
+			if (delta.x < 0)
+				delta.x = 0;
+		}
+
+		delta.y = move_ * forward.y;
+
+		while (delta.y > 0 && !can_move(delta)) {
+			delta.y -= 0.0001f;
+			if (delta.y < 0)
+				delta.y = 0;
+		}
+
 		if (can_move(delta)) {
 			m_position.x += delta.i;
 			m_position.y += delta.j;
@@ -59,10 +73,15 @@ public:
 	}
 
 	void move_down(const float &move_) {
-		float deltay = move_;
+		Vector2f delta(0.0f, move_);
 
-		if (can_move(Vector2f(0.0f, deltay)))
-			m_position.y += deltay;
+		while (delta.y > 0 && !can_move(delta)) {
+			delta.y -= 0.0001f;
+			if (delta.y < 0)
+				delta.y = 0;
+		}
+
+		m_position.y += delta.y;
 	}
 
 protected:
