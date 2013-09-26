@@ -2,6 +2,7 @@
 
 #include <zenilib.h>
 #include "Game_Object.h"
+#include "Map.h"
 
 using namespace Zeni;
 
@@ -26,6 +27,7 @@ public:
 	}
 
 	bool can_move(const Vector2f &delta_) {
+		
 		if (left_tire.y + tire_size + delta_.y > 500.0f || right_tire.y + tire_size + delta_.y > 500.0f)
 			return false;
 
@@ -75,15 +77,7 @@ public:
 				m_jump.state = down;
 		}
 
-		//Attach the wheels
-		Point2f center(get_position().x + (get_size().i * 0.5f) - (tire_size * 0.5f), 
-					   get_position().y + (get_size().j * 0.5f) - (tire_size * 0.5f));
-		float distance = get_radius() - 50.0f;
-		float ltheta = get_theta() - 3 * Global::pi / 4;
-		float rtheta = get_theta() - Global::pi / 4;
-
-		left_tire = Point2f(center.x + distance * cos(ltheta), center.y + distance * -sin(ltheta));
-		right_tire = Point2f(center.x + distance * cos(rtheta), center.y + distance * -sin(rtheta));
+		attach_wheels();
 	}
 
 	void Buggy::on_key(const SDL_KeyboardEvent &event) {
@@ -131,6 +125,17 @@ private:
 	float tire_size;
 	Point2f right_tire;
 	Point2f left_tire;
+
+	void attach_wheels() {
+		Point2f center(get_position().x + (get_size().i * 0.5f) - (tire_size * 0.5f),
+			get_position().y + (get_size().j * 0.5f) - (tire_size * 0.5f));
+		float distance = get_radius() - 60.0f;
+		float ltheta = get_theta() - 3 * Global::pi / 4;
+		float rtheta = get_theta() - Global::pi / 4;
+
+		left_tire = Point2f(center.x + distance * cos(ltheta), center.y + distance * -sin(ltheta));
+		right_tire = Point2f(center.x + distance * cos(rtheta), center.y + distance * -sin(rtheta));
+	}
 
 	void render_tire(Point2f position) const {
 		Video &vr = get_Video();

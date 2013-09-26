@@ -12,22 +12,24 @@ using std::vector;
 using std::string;
 using std::exception;
 
-static const vector<string> textures{ "blank", "ground" };
-
 static const float tile_size = 64.0f;
+
+typedef bool(*collision_f)(Point2f tpos, Point2f pos);
 
 struct Tile {
 	int id;
 	string texture;
 	float size;
+	collision_f collide;
 	
 public:
-	Tile::Tile(int id_) {
+	Tile::Tile(int id_, string texture_, collision_f f) {
 		id = id_;
-		texture = textures[id];
+		texture = texture_;
+		collide = f;
 	}
 
-	void Tile::render(int x, int y)
+	void Tile::render(int x, int y) const
 	{
 		Video &vr = get_Video();
 
@@ -44,8 +46,22 @@ public:
 	}
 };
 
+static bool no_collide(Point2f tpos, Point2f pos) { return false; }
+
+static bool square_collide(Point2f tpos, Point2f pos) {
+	if ((pos.x >= tpos.x) && (pos.x <= (tpos.x + tile_size)) && 
+		(pos.y >= tpos.y) && (pos.y <= (tpos.y + tile_size)))
+		return true;
+	return false;
+}
+
+static const vector<Tile> tiles {
+	{ 0, "blank", no_collide },
+	{ 1, "ground", square_collide },
+};
+
 class Map {
-	vector<vector<Tile>> map;
+	vector<vector<const Tile *>> map;
 
 public:
 	Map::Map() {}
@@ -64,7 +80,7 @@ public:
 			std::istringstream iss(line);
 			std::istream_iterator<string> begin(iss), end;
 			vector<string> words(begin, end);
-			vector<Tile> temp;
+			vector<const Tile *> temp;
 
 			if (!len)
 				len = words.size();
@@ -73,8 +89,7 @@ public:
 
 			for (unsigned int i = 0; i < len; i++) {
 				std::cout << stoi(words[i]);
-				Tile t(stoi(words[i]));
-				temp.push_back(t);
+				temp.push_back(&tiles[stoi(words[i])]);
 			}
 			std::cout << std::endl;
 			map.push_back(temp);
@@ -90,20 +105,20 @@ public:
 				float tx = (top_left.x + x) / tile_size;
 
 				if ((map.size() > ty) && (map[0].size() > tx))
-					get(tx, ty).render(x, y);
+					get(tx, ty)->render(x, y);
 			}
 		}
 	}
 
-	Tile get(int x, int y) {
+	const Tile *get(int x, int y) {
 		return map[y][x];
 	}
 
 	int get_id(int x, int y) {
-		return get(x, y).id;
+		return get(x, y)->id;
 	}
 
 	string get_texture(int x, int y) {
-		return get(x, y).texture;
+		return get(x, y)->texture;
 	}
 };
