@@ -8,59 +8,111 @@ using namespace Zeni;
 
 enum jump_state { up, down };
 
+class Tire {
+	float size;
+	float theta;
+	float distance;
+	Point2f position;
+
+public:
+	Tire::Tire(const float &size_, const float &theta_, const float &distance_)
+		: size(size_), theta(theta_), distance(distance_), position(0.0f, 0.0f)
+	{
+	}
+
+	void Tire::attach(const Point2f &center, const float &forward) {
+		position = Point2f(center.x + distance * cos(forward - theta), center.y + distance * -sin(forward - theta));
+		position -= Point2f(size * 0.5f, size * 0.5f);
+	}
+
+	void Tire::render() const {
+		Video &vr = get_Video();
+
+		static float spin = 0.0f;
+		spin = spin ? 0.0f : 1.0f;
+
+		Vertex2f_Texture p0(position, Point2f(spin, spin));
+		Vertex2f_Texture p1(Point2f(position.x, position.y + size), Point2f(spin, 1.0f - spin));
+		Vertex2f_Texture p2(Point2f(position.x + size, position.y + size), Point2f(1.0f - spin, 1.0f - spin));
+		Vertex2f_Texture p3(Point2f(position.x + size, position.y), Point2f(1.0f - spin, spin));
+		Material material("tire");
+
+		Quadrilateral<Vertex2f_Texture> quad(p0, p1, p2, p3);
+		quad.fax_Material(&material);
+
+		vr.render(quad);
+	}
+
+	const Point2f &get_position() { return position; }
+	const float &get_size() { return size; }
+	float bottom() { return size + position.y; }
+};
+
 class Buggy : public Game_Object {
+private:
+	float tire_size;
+	Tire left_tire;
+	Tire right_tire;
+
 public:
 	Buggy(const Point2f &position_,
 		const Vector2f &size_,
 		const float &theta_,
-		const float &speed_)
-		: Game_Object(position_, size_, theta_, speed_),
-		tire_size(64.0f)
+		const float &speed_,
+		const float &min_speed_,
+		const float &max_speed_,
+		const float &acceleration_)
+		: Game_Object(position_, size_, theta_, speed_, min_speed_, max_speed_, acceleration_),
+		left_tire(64.0f, (3 * Global::pi/ 4), (get_radius() - 60.0f)),
+		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f))
 	{
 	}
 
-	void render() const {
-		Game_Object::render("buggy");
+	bool collide(Tile t) {
+		Point2f p = get_position();
+		if (t.collide(p))
+			return true;
+	}
 
-		render_tire(left_tire);
-		render_tire(right_tire);
+	void attach_wheels() {
+		Point2f center(get_position().x + (get_size().x * 0.5f),
+			get_position().y + (get_size().y * 0.5f));
+
+		left_tire.attach(center, get_theta());
+		right_tire.attach(center, get_theta());
 	}
 
 	bool can_move(const Vector2f &delta_) {
-		
-		if (left_tire.y + tire_size + delta_.y > 500.0f || right_tire.y + tire_size + delta_.y > 500.0f)
+		attach_wheels();
+
+		if (left_tire.bottom() + delta_.y > 500.0f || right_tire.bottom() + delta_.y > 500.0f)
 			return false;
 
 		return Game_Object::can_move(delta_);
 	}
 
 	void step(const float &time_step) {
-		// without a multiplier, this will rotate a full turn after ~6.28s
-		//turn_left((m_controls.up - m_controls.down) * time_step);
-		// without the '100.0f', it would move at ~1px/s
-		if (m_jump.can_jump)
-			move_forward((m_controls.right - m_controls.left) * time_step * get_speed());
+		if (m_jump.can_jump) {
+			accelerate((m_controls.right - m_controls.left) * time_step * get_acceleration());
+			move_forward(time_step * get_speed());
+		}
 
 		//fall
-		if (left_tire.y + tire_size < 500.0f && right_tire.y + tire_size < 500.0f)
-			move_down(time_step * 98.0f);
+		if (left_tire.bottom() < 500.0f && right_tire.bottom() < 500.0f)
+			move_down(time_step * 120.0f);
 		else {
 			m_jump.can_jump = true;
 			m_jump.in_jump = false;
 
-			if (left_tire.y + tire_size < 500.0f)
+			if (left_tire.bottom() < 500.0f)
 				turn_left(time_step * 2);
-			else if (right_tire.y + tire_size < 500.0f)
+			else if (right_tire.bottom() < 500.0f)
 				turn_left(-time_step * 2);
 		}
 
 		//jump
 		if (m_jump.can_jump && m_controls.up) {
-			m_jump.height = 0;
-			m_jump.move = (m_controls.right - m_controls.left) * time_step * get_speed();
-			m_jump.in_jump = true;
-			m_jump.state = up;
-			m_jump.can_jump = false;
+			m_jump.jump(time_step * get_speed());
 			m_controls.up = false;
 		}
 
@@ -78,6 +130,12 @@ public:
 		}
 
 		attach_wheels();
+	}
+	void render() const {
+		Game_Object::render("buggy");
+
+		left_tire.render();
+		right_tire.render();
 	}
 
 	void Buggy::on_key(const SDL_KeyboardEvent &event) {
@@ -111,7 +169,7 @@ private:
 	} m_controls;
 
 	struct Jump {
-		Jump() : can_jump(true), in_jump(false), speed(700.0f), height(0.0f), max_height(100.0f) {}
+		Jump() : can_jump(false), in_jump(false), speed(700.0f), height(0.0f), max_height(100.0f) {}
 
 		bool can_jump;
 		bool in_jump;
@@ -120,37 +178,16 @@ private:
 		float max_height;
 		float move;
 		jump_state state;
+
+	public:
+		void jump(const float &move_) {
+			height = 0;
+			move = move_;
+			in_jump = true;
+			state = up;
+			can_jump = false;
+		}
 	} m_jump;
-
-	float tire_size;
-	Point2f right_tire;
-	Point2f left_tire;
-
-	void attach_wheels() {
-		Point2f center(get_position().x + (get_size().i * 0.5f) - (tire_size * 0.5f),
-			get_position().y + (get_size().j * 0.5f) - (tire_size * 0.5f));
-		float distance = get_radius() - 60.0f;
-		float ltheta = get_theta() - 3 * Global::pi / 4;
-		float rtheta = get_theta() - Global::pi / 4;
-
-		left_tire = Point2f(center.x + distance * cos(ltheta), center.y + distance * -sin(ltheta));
-		right_tire = Point2f(center.x + distance * cos(rtheta), center.y + distance * -sin(rtheta));
-	}
-
-	void render_tire(Point2f position) const {
-		Video &vr = get_Video();
-
-		Vertex2f_Texture p0(position, Point2f(0.0f, 0.0f));
-		Vertex2f_Texture p1(Point2f(position.x, position.y + tire_size), Point2f(0.0f, 1.0f));
-		Vertex2f_Texture p2(Point2f(position.x + tire_size, position.y + tire_size), Point2f(1.0f, 1.0f));
-		Vertex2f_Texture p3(Point2f(position.x + tire_size, position.y), Point2f(1.0f, 0.0f));
-		Material material("tire");
-
-		Quadrilateral<Vertex2f_Texture> quad(p0, p1, p2, p3);
-		quad.fax_Material(&material);
-
-		vr.render(quad);
-	}
 
 };
 

@@ -5,15 +5,31 @@
 using namespace Zeni;
 
 class Game_Object {
+private:
+	Point2f m_position; // Upper left corner
+	Vector2f m_size; // (width, height)
+	Vector2f forward;
+	float m_theta;
+	float m_speed;
+	float m_min_speed;
+	float m_max_speed;
+	float m_acceleration;
+
 public:
 	Game_Object(const Point2f &position_,
 		const Vector2f &size_,
 		const float &theta_ = 0.0f,
-		const float &speed_ = 0.0f)
+		const float &speed_ = 0.0f,
+		const float &min_speed_ = 0.0f,
+		const float &max_speed_ = 0.0f,
+		const float &acceleration_ = 0.0f)
 		: m_position(position_),
 		m_size(size_),
 		m_theta(theta_),
 		m_speed(speed_),
+		m_min_speed(min_speed_),
+		m_max_speed(max_speed_),
+		m_acceleration(acceleration_),
 		forward(cos(theta_), -sin(theta_))
 	{
 	}
@@ -40,9 +56,19 @@ public:
 	}
 
 	float get_speed() { return m_speed; }
+	float get_acceleration() { return m_acceleration; }
 
 	void turn_left(const float &theta_) {
+		float start = m_theta;
+
 		m_theta += theta_;
+
+		while (!can_move(Point2f(0.0f, 0.0f))) {
+			m_theta += theta_ < 0 ? 0.0001f : -0.0001f;
+
+			if (m_theta <= start)
+				break;
+		}
 
 		forward = Vector2f(cos(m_theta), -sin(m_theta));
 	}
@@ -50,36 +76,31 @@ public:
 	void move_forward(const float &move_) {
 		Vector2f delta(move_ * forward.x, 0.0f);
 		
-		while (delta.x > 0 && !can_move(delta)) {
-			delta.x -= 0.0001f;
-			if (delta.x < 0)
-				delta.x = 0;
-		}
-
-		delta.y = move_ * forward.y;
-
-		while (delta.y > 0 && !can_move(delta)) {
-			delta.y -= 0.0001f;
-			if (delta.y < 0)
-				delta.y = 0;
-		}
-
-		if (can_move(delta)) {
+		//FIXME: causes freezing
+		//while (delta.x && !can_move(delta)) {
+		//	delta.x += delta.x < 0 ? 0.0001f : -0.0001f;
+		//}
+		if (can_move(delta))
 			m_position.x += delta.i;
-			m_position.y += delta.j;
-		}
 	}
 
 	void move_down(const float &move_) {
 		Vector2f delta(0.0f, move_);
 
-		while (delta.y > 0 && !can_move(delta)) {
-			delta.y -= 0.0001f;
-			if (delta.y < 0)
-				delta.y = 0;
+		while (delta.y && !can_move(delta)) {
+			delta.y += delta.y < 0 ? 0.0001f : -0.0001f;
 		}
+		if (can_move(delta))
+			m_position.y += delta.y;
+	}
 
-		m_position.y += delta.y;
+	void set_speed(const float &speed_) {
+		if (speed_ <= m_max_speed && speed_ >= m_min_speed)
+			m_speed = speed_;
+	}
+
+	void accelerate(const float &delta_) {
+		set_speed(m_speed + delta_);
 	}
 
 protected:
@@ -96,11 +117,4 @@ protected:
 			filter); // what Color to "paint" the texture
 	}
 
-private:
-	Point2f m_position; // Upper left corner
-	Vector2f m_size; // (width, height)
-	Vector2f forward;
-	float m_theta;
-
-	float m_speed;
 };

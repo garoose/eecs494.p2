@@ -14,22 +14,26 @@ using std::exception;
 
 static const float tile_size = 64.0f;
 
-typedef bool(*collision_f)(Point2f tpos, Point2f pos);
+static const vector<string> textures{
+	"blank", //0
+	"ground", //1
+};
 
-struct Tile {
+class Tile {
 	int id;
+	Point2f position;
 	string texture;
-	float size;
-	collision_f collide;
 	
 public:
-	Tile::Tile(int id_, string texture_, collision_f f) {
+	Tile::Tile(int id_, Point2f pos_) {
 		id = id_;
-		texture = texture_;
-		collide = f;
+		Point2f position = pos_;
+		texture = textures[id];
 	}
 
-	void Tile::render(int x, int y) const
+	virtual bool collide(Point2f pos) { return false; }
+
+	void Tile::render(float x, float y) const
 	{
 		Video &vr = get_Video();
 
@@ -44,27 +48,36 @@ public:
 
 		vr.render(quad);
 	}
+
+	Point2f Tile::get_position() const { return position; }
+	int Tile::get_id() const { return id; }
+	string Tile::get_texture() const { return texture; }
+
+	void Tile::render(Point2f p) const { render(p.x, p.y); }
 };
 
-static bool no_collide(Point2f tpos, Point2f pos) { return false; }
+class Ground_Tile : public Tile {
+	Ground_Tile(int id_, Point2f pos_) : Tile(id_, pos_) {};
 
-static bool square_collide(Point2f tpos, Point2f pos) {
-	if ((pos.x >= tpos.x) && (pos.x <= (tpos.x + tile_size)) && 
-		(pos.y >= tpos.y) && (pos.y <= (tpos.y + tile_size)))
-		return true;
-	return false;
-}
-
-static const vector<Tile> tiles {
-	{ 0, "blank", no_collide },
-	{ 1, "ground", square_collide },
+	virtual bool collide(Point2f pos) {
+		Point2f tpos = get_position();
+		if ((pos.x >= tpos.x) && (pos.x <= (tpos.x + tile_size)) &&
+			(pos.y >= tpos.y) && (pos.y <= (tpos.y + tile_size)))
+			return true;
+		return false;
+	}
 };
 
 class Map {
-	vector<vector<const Tile *>> map;
+	vector<vector<Tile>> map;
+	float m_scroll_speed;
+	Point2f m_top_left;
 
 public:
-	Map::Map() {}
+	Map::Map(float scroll_speed_ = 0.0f) 
+		: m_scroll_speed(scroll_speed_) 
+	{
+	}
 
 	Map::Map(string filename) {
 		std::cout << "in map init" << std::endl;
@@ -75,12 +88,13 @@ public:
 		std::ifstream file(filename);
 		string line;
 		unsigned int len = 0;
+		unsigned int row = 0;
 
 		while (getline(file, line)) {
 			std::istringstream iss(line);
 			std::istream_iterator<string> begin(iss), end;
 			vector<string> words(begin, end);
-			vector<const Tile *> temp;
+			vector<Tile> temp;
 
 			if (!len)
 				len = words.size();
@@ -88,37 +102,46 @@ public:
 				throw new exception("Inconsistent map file line lengths");
 
 			for (unsigned int i = 0; i < len; i++) {
-				std::cout << stoi(words[i]);
-				temp.push_back(&tiles[stoi(words[i])]);
+				temp.push_back(Tile(stoi(words[i]), Point2f(float(row), float(i))));
 			}
-			std::cout << std::endl;
+
 			map.push_back(temp);
+
+			row++;
 		}
 
 		file.close();
 	}
 
-	void render_all(Point2f top_left, Vector2f game_resolution) {
-		for (int x = 0; x < game_resolution.x; x += tile_size) {
-			for (int y = 0; y < game_resolution.y; y += tile_size) {
-				float ty = (top_left.y + y) / tile_size;
-				float tx = (top_left.x + x) / tile_size;
+	void Map::step(const float &time_step_) {
+		m_top_left.x += m_scroll_speed * time_step_;
+	}
+
+	void Map::render_all(Vector2f game_resolution) {
+		render_all(game_resolution, m_top_left);
+	}
+
+	void Map::render_all(Vector2f game_resolution, Point2f top_left) {
+		for (float x = top_left.x; x < game_resolution.x + top_left.x; x += tile_size) {
+			for (float y = top_left.y; y < game_resolution.y + top_left.y; y += tile_size) {
+				int ty = int(floor(y / tile_size));
+				int tx = int(floor(x / tile_size));
 
 				if ((map.size() > ty) && (map[0].size() > tx))
-					get(tx, ty)->render(x, y);
+					get(tx, ty).render(x, y);
 			}
 		}
 	}
 
-	const Tile *get(int x, int y) {
+	const Tile get(int x, int y) {
 		return map[y][x];
 	}
 
 	int get_id(int x, int y) {
-		return get(x, y)->id;
+		return get(x, y).get_id();
 	}
 
 	string get_texture(int x, int y) {
-		return get(x, y)->texture;
+		return get(x, y).get_texture();
 	}
 };

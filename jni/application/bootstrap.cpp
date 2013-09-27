@@ -27,10 +27,12 @@ public:
 	  : game_resolution(1280.0f, 768.0f),
 	  top_left(0.0f, 0.0f),
 	  map1("maps/map1.txt"),
+	  map_scroll_speed(70.0f),
 	  m_time_passed(0.0f),
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
-	  m_buggy(Point2f(50.0f, 200.0f), Vector2f(256.0f, 128.0f), Global::pi / 4, 150.0f)
+	  //      position,               size,                     theta,          speed,   min_speed, max_speed, acceleration
+	  m_buggy(Point2f(50.0f, 200.0f), Vector2f(256.0f, 128.0f), Global::pi / 4, 100.0f,  20.0f,     250.0f,    40.0f)
   {
 	  // If our game has no real time component in real life, allow the user to pause the game.
 	  // This would be a BAD idea in a networked multiplayer mode for a game.
@@ -42,6 +44,7 @@ private:
   Vector2f game_resolution;
   Point2f top_left;
   Map map1;
+  float map_scroll_speed;
 
   Buggy m_buggy;
 
@@ -90,27 +93,31 @@ private:
 
 	  while (time_step > m_max_time_step) {
 		  m_buggy.step(time_step);
+		  top_left.x += map_scroll_speed * time_step;
 
 		  time_step -= m_max_time_step;
 	  }
 
 	  m_buggy.step(time_step);
+	  top_left.x += map_scroll_speed * time_step;
 	  time_step = 0.0f;
 
+	  //TODO: speed up map scroll when buggy gets to certain point
+
 	  //FIXME: needs work
-	  if ((m_buggy.get_position().x + m_buggy.get_size().x) > (top_left.x + (game_resolution.x / 2)))
-		  top_left.x += 64.0f;
+	  //if ((m_buggy.get_position().x + m_buggy.get_size().x) > (top_left.x + (game_resolution.x / 2)))
+	  //  top_left.x += 1.0f;
   }
 
   void Play_State::render_bg(Video &vr)
   {
-	  map1.render_all(top_left, game_resolution);
+	  map1.render_all(game_resolution, top_left);
   }
 
   void Play_State::render() {
 	  Video &vr = get_Video();
 
-	  vr.set_2d(make_pair(Point2f(), Point2f(game_resolution.x, game_resolution.y)));
+	  vr.set_2d(make_pair(top_left, game_resolution + top_left));
 
 	  render_bg(vr);
 
