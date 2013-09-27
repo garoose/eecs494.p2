@@ -32,7 +32,7 @@ public:
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
 	  //      position,               size,                     theta,          speed,   min_speed, max_speed, acceleration
-	  m_buggy(Point2f(50.0f, 200.0f), Vector2f(256.0f, 128.0f), Global::pi / 4, 100.0f,  20.0f,     250.0f,    40.0f)
+	  m_buggy(Point2f(50.0f, 200.0f), Vector2f(256.0f, 128.0f), 0, 100.0f,  20.0f,     250.0f,    40.0f)
   {
 	  // If our game has no real time component in real life, allow the user to pause the game.
 	  // This would be a BAD idea in a networked multiplayer mode for a game.
@@ -52,6 +52,7 @@ private:
     //get_Window().mouse_grab(true);
     get_Window().mouse_hide(true);
     //get_Game().joy_mouse.enabled = false;
+
 
 	m_chrono.start();
   }
@@ -92,17 +93,36 @@ private:
 		  time_step = m_max_time_steps * m_max_time_step;
 
 	  while (time_step > m_max_time_step) {
-		  m_buggy.step(time_step);
-		  top_left.x += map_scroll_speed * time_step;
+		  m_buggy.step(time_step, map1);
+		  //top_left.x += map_scroll_speed * time_step;
 
 		  time_step -= m_max_time_step;
 	  }
 
-	  m_buggy.step(time_step);
-	  top_left.x += map_scroll_speed * time_step;
+	  m_buggy.step(time_step, map1);
+	  //top_left.x += map_scroll_speed * time_step;
 	  time_step = 0.0f;
 
+	  //FIXME: Temporary solution: end game when buggy frame collides
+	  if (m_buggy.collide(map1)) {
+		  play_sound("explode");
+		  m_buggy.reset_position();
+	  }
+
 	  //TODO: speed up map scroll when buggy gets to certain point
+	  if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x))
+		  top_left.x += 25.0f;
+	  else if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.75f))
+		  top_left.x += 15.0f;
+	  else if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.50f))
+		  top_left.x += 5.0f;
+
+	  if (m_buggy.get_position().x < top_left.x - (game_resolution.x * 0.25f))
+		  top_left.x -= 25.0f;
+	  else if (m_buggy.get_position().x < top_left.x)
+		  top_left.x -= 15.0f;
+	  else if (m_buggy.get_position().x < top_left.x + (game_resolution.x * 0.25f))
+		  top_left.x -= 5.0f;
 
 	  //FIXME: needs work
 	  //if ((m_buggy.get_position().x + m_buggy.get_size().x) > (top_left.x + (game_resolution.x / 2)))
@@ -174,7 +194,12 @@ class Bootstrap {
       get_Sounds();
       get_Game().joy_mouse.enabled = true;
 
-      return new Title_State<Play_State, Instructions_State>("Zenipex Library\nMars Buggy");
+
+	  get_Sound().set_BGM("sfx/cycle2_08");
+	  get_Sound().set_BGM_looping(true);
+	  get_Sound().play_BGM();
+
+      return new Title_State<Play_State, Instructions_State>("Zenipex Library\nMars Patrol");
     }
   } m_goi;
 

@@ -2,6 +2,8 @@
 
 #include <zenilib.h>
 
+#include "Map.h"
+
 using namespace Zeni;
 
 class Game_Object {
@@ -14,6 +16,7 @@ private:
 	float m_min_speed;
 	float m_max_speed;
 	float m_acceleration;
+	Point2f reset;
 
 public:
 	Game_Object(const Point2f &position_,
@@ -30,7 +33,8 @@ public:
 		m_min_speed(min_speed_),
 		m_max_speed(max_speed_),
 		m_acceleration(acceleration_),
-		forward(cos(theta_), -sin(theta_))
+		forward(cos(theta_), -sin(theta_)),
+		reset(position_)
 	{
 	}
 
@@ -39,7 +43,7 @@ public:
 
 	virtual void render() const = 0; // pure virtual function call
 
-	virtual bool can_move(const Vector2f &delta_) {
+	virtual bool can_move(const Vector2f &delta_, Map m) {
 		if ((m_position.x + delta_.x) < 0)
 			return false;
 
@@ -58,12 +62,16 @@ public:
 	float get_speed() { return m_speed; }
 	float get_acceleration() { return m_acceleration; }
 
-	void turn_left(const float &theta_) {
+	void reset_position() {
+		m_position = reset;
+	}
+
+	void turn_left(const float &theta_, Map m) {
 		float start = m_theta;
 
 		m_theta += theta_;
 
-		while (!can_move(Point2f(0.0f, 0.0f))) {
+		while (!can_move(Vector2f(0.0f, 0.0f), m)) {
 			m_theta += theta_ < 0 ? 0.0001f : -0.0001f;
 
 			if (m_theta <= start)
@@ -73,25 +81,28 @@ public:
 		forward = Vector2f(cos(m_theta), -sin(m_theta));
 	}
 
-	void move_forward(const float &move_) {
+	void move_forward(const float &move_, Map m) {
 		Vector2f delta(move_ * forward.x, 0.0f);
 		
 		//FIXME: causes freezing
 		//while (delta.x && !can_move(delta)) {
 		//	delta.x += delta.x < 0 ? 0.0001f : -0.0001f;
 		//}
-		if (can_move(delta))
+		if (can_move(delta, m))
 			m_position.x += delta.i;
 	}
 
-	void move_down(const float &move_) {
+	bool move_down(const float &move_, Map m) {
 		Vector2f delta(0.0f, move_);
 
-		while (delta.y && !can_move(delta)) {
-			delta.y += delta.y < 0 ? 0.0001f : -0.0001f;
-		}
-		if (can_move(delta))
+		//while (delta.y && !can_move(delta, m)) {
+		//	delta.y += delta.y < 0 ? 0.0001f : -0.0001f;
+		//}
+		if (can_move(delta, m)) {
 			m_position.y += delta.y;
+			return true;
+		}
+		return false;
 	}
 
 	void set_speed(const float &speed_) {

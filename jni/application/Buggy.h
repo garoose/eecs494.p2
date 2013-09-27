@@ -6,6 +6,8 @@
 
 using namespace Zeni;
 
+static float gravity = 140.0f;
+
 enum jump_state { up, down };
 
 class Tire {
@@ -18,6 +20,21 @@ public:
 	Tire::Tire(const float &size_, const float &theta_, const float &distance_)
 		: size(size_), theta(theta_), distance(distance_), position(0.0f, 0.0f)
 	{
+	}
+
+	bool Tire::collide(Map m) {
+		Point2f p = get_position();
+
+		if (m.collide(p))
+			return true;
+		if (m.collide(p + Point2f(get_size(), 0.0f)))
+			return true;
+		if (m.collide(p + Point2f(0.0f, get_size())))
+			return true;
+		if (m.collide(p + Point2f(get_size(), get_size())))
+			return true;
+
+		return false;
 	}
 
 	void Tire::attach(const Point2f &center, const float &forward) {
@@ -45,7 +62,7 @@ public:
 
 	const Point2f &get_position() { return position; }
 	const float &get_size() { return size; }
-	float bottom() { return size + position.y; }
+	Point2f bottom() { return Point2f(position.x, size + position.y); }
 };
 
 class Buggy : public Game_Object {
@@ -63,51 +80,65 @@ public:
 		const float &max_speed_,
 		const float &acceleration_)
 		: Game_Object(position_, size_, theta_, speed_, min_speed_, max_speed_, acceleration_),
-		left_tire(64.0f, (3 * Global::pi/ 4), (get_radius() - 60.0f)),
+		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f)),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f))
 	{
 	}
 
-	bool collide(Tile t) {
-		Point2f p = get_position();
-		if (t.collide(p))
-			return true;
+	bool collide(Map m) {
+		for (Point2f p = get_position(); p.x < get_position().x + get_size().x; p.x++) {
+			if (m.collide(p))
+				return true;
+		}
+		for (Point2f p = get_position(); p.y < get_position().y + get_size().y; p.y++) {
+			if (m.collide(p))
+				return true;
+		}
+		for (Point2f p = get_position() + (get_size() - Point2f(40.0f, 0.0f)); p.x > get_position().x; p.x--) {
+			if (m.collide(p))
+				return true;
+		}
+		for (Point2f p = get_position() + (get_size() - Point2f(40.0f, 0.0f)); p.y > get_position().y; p.y--) {
+			if (m.collide(p))
+				return true;
+		}
+			
+		return false;
 	}
 
-	void attach_wheels() {
-		Point2f center(get_position().x + (get_size().x * 0.5f),
-			get_position().y + (get_size().y * 0.5f));
-
-		left_tire.attach(center, get_theta());
-		right_tire.attach(center, get_theta());
-	}
-
-	bool can_move(const Vector2f &delta_) {
+	bool can_move(const Vector2f &delta_, Map m) {
 		attach_wheels();
 
-		if (left_tire.bottom() + delta_.y > 500.0f || right_tire.bottom() + delta_.y > 500.0f)
+		if (m.collide(left_tire.bottom() + delta_) || m.collide(right_tire.bottom() + delta_))
 			return false;
 
-		return Game_Object::can_move(delta_);
+		return Game_Object::can_move(delta_, m);
 	}
 
-	void step(const float &time_step) {
+	void step(const float &time_step, Map m) {
 		if (m_jump.can_jump) {
 			accelerate((m_controls.right - m_controls.left) * time_step * get_acceleration());
-			move_forward(time_step * get_speed());
 		}
 
+		move_forward(time_step * get_speed(), m);
+
 		//fall
-		if (left_tire.bottom() < 500.0f && right_tire.bottom() < 500.0f)
-			move_down(time_step * 120.0f);
-		else {
+		bool leftc = left_tire.collide(m);
+		bool rightc = right_tire.collide(m);
+
+		if (!leftc && !rightc) {
+			if (!move_down(time_step * gravity, m)) {
+				m_jump.can_jump = true;
+				m_jump.in_jump = false;
+			}
+		} else {
 			m_jump.can_jump = true;
 			m_jump.in_jump = false;
 
-			if (left_tire.bottom() < 500.0f)
-				turn_left(time_step * 2);
-			else if (right_tire.bottom() < 500.0f)
-				turn_left(-time_step * 2);
+			if (!leftc)
+				turn_left(time_step * 2, m);
+			else if (!rightc)
+				turn_left(-time_step * 2, m);
 		}
 
 		//jump
@@ -120,10 +151,10 @@ public:
 			if (m_jump.state == up) {
 				float deltaj = time_step * m_jump.speed;
 				m_jump.height += deltaj;
-				move_down(-deltaj);
+				move_down(-deltaj, m);
 			}
 
-			move_forward(m_jump.move);
+			move_forward(m_jump.move, m);
 
 			if (m_jump.height >= m_jump.max_height)
 				m_jump.state = down;
@@ -188,6 +219,14 @@ private:
 			can_jump = false;
 		}
 	} m_jump;
+
+	void Buggy::attach_wheels() {
+		Point2f center(get_position().x + (get_size().x * 0.5f),
+			get_position().y + (get_size().y * 0.5f));
+
+		left_tire.attach(center, get_theta());
+		right_tire.attach(center, get_theta());
+	}
 
 };
 

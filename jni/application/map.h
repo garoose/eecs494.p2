@@ -1,5 +1,6 @@
 #pragma once
 
+#include <zenilib.h>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -12,6 +13,8 @@ using std::vector;
 using std::string;
 using std::exception;
 
+using namespace Zeni;
+
 static const float tile_size = 64.0f;
 
 static const vector<string> textures{
@@ -23,15 +26,17 @@ class Tile {
 	int id;
 	Point2f position;
 	string texture;
+	bool can_collide;
 	
 public:
-	Tile::Tile(int id_, Point2f pos_) {
+	Tile::Tile(int id_, Point2f pos_, bool collide_) {
 		id = id_;
 		Point2f position = pos_;
 		texture = textures[id];
+		can_collide = collide_;
 	}
 
-	virtual bool collide(Point2f pos) { return false; }
+	virtual bool collide(Point2f pos) { return can_collide; }
 
 	void Tile::render(float x, float y) const
 	{
@@ -57,9 +62,11 @@ public:
 };
 
 class Ground_Tile : public Tile {
-	Ground_Tile(int id_, Point2f pos_) : Tile(id_, pos_) {};
+public:
+	Ground_Tile(int id_, Point2f pos_) : Tile(id_, pos_, true) {};
 
 	virtual bool collide(Point2f pos) {
+		return true;
 		Point2f tpos = get_position();
 		if ((pos.x >= tpos.x) && (pos.x <= (tpos.x + tile_size)) &&
 			(pos.y >= tpos.y) && (pos.y <= (tpos.y + tile_size)))
@@ -80,7 +87,6 @@ public:
 	}
 
 	Map::Map(string filename) {
-		std::cout << "in map init" << std::endl;
 		load(filename);
 	}
 
@@ -102,7 +108,7 @@ public:
 				throw new exception("Inconsistent map file line lengths");
 
 			for (unsigned int i = 0; i < len; i++) {
-				temp.push_back(Tile(stoi(words[i]), Point2f(float(row), float(i))));
+				temp.push_back(Tile(stoi(words[i]), Point2f(float(row), float(i)), stoi(words[i]) ? true : false));
 			}
 
 			map.push_back(temp);
@@ -121,11 +127,21 @@ public:
 		render_all(game_resolution, m_top_left);
 	}
 
+	bool Map::collide(Point2f pos) {
+		unsigned int ty = int(floor(pos.y / tile_size));
+		unsigned int tx = int(floor(pos.x / tile_size));
+
+		if ((map.size() > ty) && (map[0].size() > tx))
+			return get(tx, ty).collide(pos);
+
+		return false;
+	}
+
 	void Map::render_all(Vector2f game_resolution, Point2f top_left) {
 		for (float x = top_left.x; x < game_resolution.x + top_left.x; x += tile_size) {
 			for (float y = top_left.y; y < game_resolution.y + top_left.y; y += tile_size) {
-				int ty = int(floor(y / tile_size));
-				int tx = int(floor(x / tile_size));
+				unsigned int ty = int(floor(y / tile_size));
+				unsigned int tx = int(floor(x / tile_size));
 
 				if ((map.size() > ty) && (map[0].size() > tx))
 					get(tx, ty).render(x, y);
@@ -133,7 +149,7 @@ public:
 		}
 	}
 
-	const Tile get(int x, int y) {
+	Tile &get(int x, int y) {
 		return map[y][x];
 	}
 
