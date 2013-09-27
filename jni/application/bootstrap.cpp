@@ -97,8 +97,9 @@ private:
 	  m_buggy.step(time_step);
 	  time_step = 0.0f;
 
-	  if (m_buggy.get_position().x > (top_left.x + game_resolution.x) / 2)
-		  top_left.x += 128.0f;
+	  //FIXME: needs work
+	  if ((m_buggy.get_position().x + m_buggy.get_size().x) > (top_left.x + (game_resolution.x / 2)))
+		  top_left.x += 64.0f;
   }
 
   void Play_State::render_bg(Video &vr)
