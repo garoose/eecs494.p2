@@ -28,4 +28,7 @@ HOWTO:  To convert between types, or to downmix to mono,
   <hello_world>
     <filepath>sfx/104469__dkmedic__world</filepath>
   </hello_world>
+  <explode>
+    <filepath>sfx/explode</filepath>
+  </explode>
 </Sounds>
