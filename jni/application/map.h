@@ -128,8 +128,9 @@ public:
 	}
 
 	bool Map::collide(Point2f pos) {
-		unsigned int ty = int(floor(pos.y / tile_size));
+		//Find the relevant tile to collide with
 		unsigned int tx = int(floor(pos.x / tile_size));
+		unsigned int ty = int(floor(pos.y / tile_size));
 
 		if ((map.size() > ty) && (map[0].size() > tx))
 			return get(tx, ty).collide(pos);
@@ -138,10 +139,10 @@ public:
 	}
 
 	void Map::render_all(Vector2f game_resolution, Point2f top_left) {
-		for (float x = top_left.x; x < game_resolution.x + top_left.x; x += tile_size) {
-			for (float y = top_left.y; y < game_resolution.y + top_left.y; y += tile_size) {
-				unsigned int ty = int(floor(y / tile_size));
-				unsigned int tx = int(floor(x / tile_size));
+		for (float x = 0; x < map[0].size() * tile_size; x += tile_size) {
+			for (float y = 0; y < map.size() * tile_size; y += tile_size) {
+				unsigned int tx = int(floor((x) / tile_size));
+				unsigned int ty = int(floor((y) / tile_size));
 
 				if ((map.size() > ty) && (map[0].size() > tx))
 					get(tx, ty).render(x, y);

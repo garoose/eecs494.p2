@@ -16,7 +16,7 @@ private:
 	float m_min_speed;
 	float m_max_speed;
 	float m_acceleration;
-	Point2f reset;
+	Point2f reset_pos;
 
 public:
 	Game_Object(const Point2f &position_,
@@ -34,7 +34,7 @@ public:
 		m_max_speed(max_speed_),
 		m_acceleration(acceleration_),
 		forward(cos(theta_), -sin(theta_)),
-		reset(position_)
+		reset_pos(position_)
 	{
 	}
 
@@ -63,7 +63,7 @@ public:
 	float get_acceleration() { return m_acceleration; }
 
 	void reset_position() {
-		m_position = reset;
+		m_position = reset_pos;
 	}
 
 	void turn_left(const float &theta_, Map m) {

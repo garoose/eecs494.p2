@@ -3,6 +3,7 @@
 #include <zenilib.h>
 #include "Game_Object.h"
 #include "Map.h"
+#include "Collidable.h"
 
 using namespace Zeni;
 
@@ -10,7 +11,7 @@ static float gravity = 140.0f;
 
 enum jump_state { up, down };
 
-class Tire {
+class Tire : public Collidable {
 	float size;
 	float theta;
 	float distance;
@@ -18,23 +19,18 @@ class Tire {
 
 public:
 	Tire::Tire(const float &size_, const float &theta_, const float &distance_)
-		: size(size_), theta(theta_), distance(distance_), position(0.0f, 0.0f)
+		: size(size_), theta(theta_), distance(distance_), position(0.0f, 0.0f),
+		Collidable(vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) })
+		//Collidable(Vector2f(size, size))
 	{
 	}
 
-	bool Tire::collide(Map m) {
-		Point2f p = get_position();
+	bool Tire::collide(Map &m) {
+		return Collidable::collide(get_position(), m);
+	}
 
-		if (m.collide(p))
-			return true;
-		if (m.collide(p + Point2f(get_size(), 0.0f)))
-			return true;
-		if (m.collide(p + Point2f(0.0f, get_size())))
-			return true;
-		if (m.collide(p + Point2f(get_size(), get_size())))
-			return true;
-
-		return false;
+	bool Tire::collide(const Vector2f &delta, Map &m) {
+		return Collidable::collide(get_position() + delta, m);
 	}
 
 	void Tire::attach(const Point2f &center, const float &forward) {
@@ -45,13 +41,10 @@ public:
 	void Tire::render() const {
 		Video &vr = get_Video();
 
-		static float spin = 0.0f;
-		spin = spin ? 0.0f : 1.0f;
-
-		Vertex2f_Texture p0(position, Point2f(spin, spin));
-		Vertex2f_Texture p1(Point2f(position.x, position.y + size), Point2f(spin, 1.0f - spin));
-		Vertex2f_Texture p2(Point2f(position.x + size, position.y + size), Point2f(1.0f - spin, 1.0f - spin));
-		Vertex2f_Texture p3(Point2f(position.x + size, position.y), Point2f(1.0f - spin, spin));
+		Vertex2f_Texture p0(position, Point2f(0.0f, 0.0f));
+		Vertex2f_Texture p1(Point2f(position.x, position.y + size), Point2f(0.0f, 1.0f ));
+		Vertex2f_Texture p2(Point2f(position.x + size, position.y + size), Point2f(1.0f, 1.0f));
+		Vertex2f_Texture p3(Point2f(position.x + size, position.y), Point2f(1.0f, 0.0f));
 		Material material("tire");
 
 		Quadrilateral<Vertex2f_Texture> quad(p0, p1, p2, p3);
@@ -60,12 +53,16 @@ public:
 		vr.render(quad);
 	}
 
-	const Point2f &get_position() { return position; }
-	const float &get_size() { return size; }
-	Point2f bottom() { return Point2f(position.x, size + position.y); }
+	void Tire::render_collisions(Map &m) const {
+		Collidable::render(get_position(), m);
+	}
+
+	const Point2f &get_position() const { return position; }
+	const float &get_size() const { return size; }
+	Point2f bottom() const { return Point2f(position.x, size + position.y); }
 };
 
-class Buggy : public Game_Object {
+class Buggy : public Game_Object, public Collidable {
 private:
 	float tire_size;
 	Tire left_tire;
@@ -80,42 +77,30 @@ public:
 		const float &max_speed_,
 		const float &acceleration_)
 		: Game_Object(position_, size_, theta_, speed_, min_speed_, max_speed_, acceleration_),
+		Collidable(vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_.x, 0.0f), Point2f(size_.x, size_.y), Point2f(0.0f, size_.y) }),
 		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f)),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f))
 	{
 	}
 
-	bool collide(Map m) {
-		for (Point2f p = get_position(); p.x < get_position().x + get_size().x; p.x++) {
-			if (m.collide(p))
-				return true;
-		}
-		for (Point2f p = get_position(); p.y < get_position().y + get_size().y; p.y++) {
-			if (m.collide(p))
-				return true;
-		}
-		for (Point2f p = get_position() + (get_size() - Point2f(40.0f, 0.0f)); p.x > get_position().x; p.x--) {
-			if (m.collide(p))
-				return true;
-		}
-		for (Point2f p = get_position() + (get_size() - Point2f(40.0f, 0.0f)); p.y > get_position().y; p.y--) {
-			if (m.collide(p))
-				return true;
-		}
-			
-		return false;
+	bool collide(Map &m) {
+		return Collidable::collide(get_position(), m);
 	}
 
-	bool can_move(const Vector2f &delta_, Map m) {
+	bool collide(const Vector2f &delta, Map &m) {
+		return Collidable::collide(get_position() + delta, m);
+	}
+
+	bool can_move(const Vector2f &delta_, Map &m) {
 		attach_wheels();
 
-		if (m.collide(left_tire.bottom() + delta_) || m.collide(right_tire.bottom() + delta_))
+		if (collide(delta_, m) || left_tire.collide(delta_, m) || right_tire.collide(delta_, m))
 			return false;
 
 		return Game_Object::can_move(delta_, m);
 	}
 
-	void step(const float &time_step, Map m) {
+	void step(const float &time_step, Map &m) {
 		if (m_jump.can_jump) {
 			accelerate((m_controls.right - m_controls.left) * time_step * get_acceleration());
 		}
@@ -143,7 +128,7 @@ public:
 
 		//jump
 		if (m_jump.can_jump && m_controls.up) {
-			m_jump.jump(time_step * get_speed());
+			m_jump.jump();
 			m_controls.up = false;
 		}
 
@@ -154,14 +139,13 @@ public:
 				move_down(-deltaj, m);
 			}
 
-			move_forward(m_jump.move, m);
-
 			if (m_jump.height >= m_jump.max_height)
 				m_jump.state = down;
 		}
 
 		attach_wheels();
 	}
+
 	void render() const {
 		Game_Object::render("buggy");
 
@@ -169,21 +153,31 @@ public:
 		right_tire.render();
 	}
 
+	void render_collisions(Map &m) const {
+		Collidable::render(get_position(), m);
+		left_tire.render_collisions(m);
+		right_tire.render_collisions(m);
+	}
+
 	void Buggy::on_key(const SDL_KeyboardEvent &event) {
 		switch (event.keysym.sym) {
 		case SDLK_LEFT:
+		case SDLK_a:
 			m_controls.left = event.type == SDL_KEYDOWN;
 			break;
 
 		case SDLK_RIGHT:
+		case SDLK_d:
 			m_controls.right = event.type == SDL_KEYDOWN;
 			break;
 
 		case SDLK_UP:
+		case SDLK_w:
 			m_controls.up = event.type == SDL_KEYDOWN;
 			break;
 
 		case SDLK_DOWN:
+		case SDLK_s:
 			m_controls.down = event.type == SDL_KEYDOWN;
 			break;
 		}
@@ -200,20 +194,18 @@ private:
 	} m_controls;
 
 	struct Jump {
-		Jump() : can_jump(false), in_jump(false), speed(700.0f), height(0.0f), max_height(100.0f) {}
+		Jump() : can_jump(false), in_jump(false), speed(700.0f), height(0.0f), max_height(120.0f) {}
 
 		bool can_jump;
 		bool in_jump;
 		float speed;
 		float height;
 		float max_height;
-		float move;
 		jump_state state;
 
 	public:
-		void jump(const float &move_) {
+		void jump() {
 			height = 0;
-			move = move_;
 			in_jump = true;
 			state = up;
 			can_jump = false;
