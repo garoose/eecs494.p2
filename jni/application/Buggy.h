@@ -25,12 +25,12 @@ public:
 	{
 	}
 
-	bool Tire::collide(Map &m) {
-		return Collidable::collide(get_position(), m);
+	bool Tire::collide(Collidable &c) {
+		return Collidable::collide(get_position(), c);
 	}
 
-	bool Tire::collide(const Vector2f &delta, Map &m) {
-		return Collidable::collide(get_position() + delta, m);
+	bool Tire::collide(const Vector2f &delta, Collidable &c) {
+		return Collidable::collide(get_position() + delta, c);
 	}
 
 	void Tire::attach(const Point2f &center, const float &forward) {
@@ -53,8 +53,8 @@ public:
 		vr.render(quad);
 	}
 
-	void Tire::render_collisions(Map &m) const {
-		Collidable::render(get_position(), m);
+	void Tire::render_collisions(Collidable &c) const {
+		Collidable::render(get_position(), c);
 	}
 
 	const Point2f &get_position() const { return position; }
@@ -83,12 +83,12 @@ public:
 	{
 	}
 
-	bool collide(Map &m) {
-		return Collidable::collide(get_position(), m);
+	bool collide(Collidable &c) {
+		return Collidable::collide(get_position(), c);
 	}
 
-	bool collide(const Vector2f &delta, Map &m) {
-		return Collidable::collide(get_position() + delta, m);
+	bool collide(const Vector2f &delta, Collidable &c) {
+		return Collidable::collide(get_position() + delta, c);
 	}
 
 	bool can_move(const Vector2f &delta_, Map &m) {
