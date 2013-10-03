@@ -11,6 +11,8 @@
 
 #include "Collidable.h"
 #include "Tile.h"
+#include "Game_Object.h"
+#include "Asteroid.h"
 
 using std::vector;
 using std::string;
@@ -20,6 +22,7 @@ using namespace Zeni;
 
 class Map : public Collidable {
 	vector<vector<Tile *>> map;
+	vector<Game_Object *> list;
 
 public:
 	Map::Map()
@@ -42,9 +45,12 @@ public:
 		std::ifstream file(filename);
 		string line;
 		unsigned int len = 0;
-		unsigned int row = 0;
 
-		while (getline(file, line)) {
+		//get the number of rows
+		getline(file, line);
+		int rows = stoi(line);
+
+		while (getline(file, line) && rows > 0) {
 			std::istringstream iss(line);
 			std::istream_iterator<string> begin(iss), end;
 			vector<string> words(begin, end);
@@ -61,19 +67,32 @@ public:
 
 			map.push_back(temp);
 
-			row++;
+			rows--;
+		}
+
+		//Read in object list
+		while (getline(file, line)) {
+			std::istringstream iss(line);
+			std::istream_iterator<string> begin(iss), end;
+			vector<string> words(begin, end);
+
+			if (words[0] == "asteroid") {
+				list.push_back(new Asteroid(Point2f(stof(words[1]), stof(words[2])), 
+					Vector2f(stof(words[3]), stof(words[4])), Global::pi, stof(words[6]));
+			}
+
 		}
 
 		file.close();
 	}
 
-	bool Map::collide(const Point2f &pos) override {
+	bool Map::check_collision(const Point2f &pos) override {
 		//Find the relevant tile to collide with
 		unsigned int tx = int(floor(pos.x / tile_size));
 		unsigned int ty = int(floor(pos.y / tile_size));
 
 		if ((map.size() > ty) && (map[0].size() > tx))
-			return get(tx, ty)->collide(pos);
+			return get(tx, ty)->check_collision(pos);
 
 		return false;
 	}
@@ -89,6 +108,16 @@ public:
 					//get(tx, ty)->Collidable::render(Point2f(x, y), b);
 				}
 			}
+		}
+
+		for each (Game_Object *o in list) {
+			o->render();
+		}
+	}
+
+	void Map::step_all(const float &time_step) {
+		for each (Game_Object *o in list) {
+			o->step(time_step, *this);
 		}
 	}
 

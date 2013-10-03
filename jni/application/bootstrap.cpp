@@ -26,9 +26,9 @@ class Play_State : public Gamestate_Base
 public:
 	Play_State()
 	  : game_resolution(1280.0f, 768.0f),
-	  top_left(0.0f, 0.0f),
+	  top_left(-256.0f, 0.0f),
 	  map1("maps/map1.txt"),
-	  map_scroll_speed(70.0f),
+	  map_scroll_speed(0.0f),
 	  m_time_passed(0.0f),
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
@@ -97,9 +97,11 @@ private:
 
 	  while (time_step > m_max_time_step) {
 		  m_buggy.step(time_step, map1);
+		  map1.step_all(time_step);
 		  //top_left.x += map_scroll_speed * time_step;
 
 		  time_step -= m_max_time_step;
+		  map1.step_all(time_step);
 	  }
 
 	  m_buggy.step(time_step, map1);
@@ -113,23 +115,23 @@ private:
 	  }*/
 
 	  //TODO: speed up map scroll when buggy gets to certain point
+	  if (m_buggy.get_position().x >= top_left.x + (game_resolution.x * 0.20f)
+		  && m_buggy.get_position().x + m_buggy.get_size().x <= top_left.x + (game_resolution.x * 0.60f))
+		  map_scroll_speed = 0.0f;
 	  if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x))
-		  top_left.x += 25.0f;
+		  map_scroll_speed = 20.0f;
 	  else if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.75f))
-		  top_left.x += 15.0f;
-	  else if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.50f))
-		  top_left.x += 5.0f;
-
-	  if (m_buggy.get_position().x < top_left.x - (game_resolution.x * 0.25f))
-		  top_left.x -= 25.0f;
+		  map_scroll_speed = 10.0f;
+	  else if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.60f))
+		  map_scroll_speed = 5.0f;
+	  else if (m_buggy.get_position().x < top_left.x - (game_resolution.x * 0.20f))
+		  map_scroll_speed = -20.0f;
 	  else if (m_buggy.get_position().x < top_left.x)
-		  top_left.x -= 15.0f;
-	  else if (m_buggy.get_position().x < top_left.x + (game_resolution.x * 0.25f))
-		  top_left.x -= 5.0f;
+		  map_scroll_speed = -10.0f;
+	  else if (m_buggy.get_position().x < top_left.x + (game_resolution.x * 0.05f))
+		  map_scroll_speed = -5.0f;
 
-	  //FIXME: needs work
-	  //if ((m_buggy.get_position().x + m_buggy.get_size().x) > (top_left.x + (game_resolution.x / 2)))
-	  //  top_left.x += 1.0f;
+	  top_left.x += map_scroll_speed;
   }
 
   void Play_State::render_bg()

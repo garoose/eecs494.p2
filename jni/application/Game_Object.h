@@ -50,6 +50,10 @@ public:
 		return true;
 	}
 
+	virtual void step(const float &time_step, Map &m)
+	{
+	}
+
 	const Point2f & get_position() const { return m_position; }
 	const Vector2f & get_size() const { return m_size; }
 	const float & get_theta() const { return m_theta; }

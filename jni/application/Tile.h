@@ -69,7 +69,7 @@ public:
 	{
 	}
 
-	bool Ground_Tile::collide(const Point2f &pos) override {
+	bool check_collision(const Point2f &pos) {
 		return true;
 	}
 
@@ -80,10 +80,6 @@ public:
 	Ground_Half_Tile(int id_, string texture_)
 		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, tile_size / 2), Point2f(tile_size, tile_size / 2), Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
 	{
-	}
-
-	bool Ground_Half_Tile::collide(const Point2f &pos) override {
-		return true;
 	}
 
 };
@@ -105,11 +101,6 @@ public:
 	{
 	}
 
-	bool Slope_Top_Tile::collide(const Point2f &pos) override {
-
-		return true;
-	}
-
 };
 
 class Mars_Rock_Tile : public Tile {
@@ -119,7 +110,7 @@ public:
 	{
 	}
 
-	bool Mars_Rock_Tile::collide(const Point2f &pos) override {
+	bool Mars_Rock_Tile::check_collision(const Point2f &pos) override {
 		change_texture("sky");
 		return false;
 	}

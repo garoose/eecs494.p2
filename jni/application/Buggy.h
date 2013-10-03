@@ -28,12 +28,12 @@ public:
 	{
 	}
 
-	bool Tire::collide(Collidable &c) {
-		return Collidable::collide(get_position(), c);
+	bool Tire::check_collision(Collidable &c) {
+		return Collidable::check_collision(get_position(), c);
 	}
 
-	bool Tire::collide(const Vector2f &delta, Collidable &c) {
-		return Collidable::collide(get_position() + delta, c);
+	bool Tire::check_collision(const Vector2f &delta, Collidable &c) {
+		return Collidable::check_collision(get_position() + delta, c);
 	}
 
 	void Tire::attach(const Point2f &center, const float &forward) {
@@ -86,24 +86,31 @@ public:
 	{
 	}
 
-	bool Buggy::collide(Collidable &c) {
-		return Collidable::collide(get_position(), c);
+	bool Buggy::check_collision(Collidable &c) {
+		return Collidable::check_collision(get_position(), c);
 	}
 
-	bool Buggy::collide(const Vector2f &delta, Collidable &c) {
-		return Collidable::collide(get_position() + delta, c);
+	bool Buggy::check_collision(const Vector2f &delta, Collidable &c) {
+		return Collidable::check_collision(get_position() + delta, c);
+	}
+
+	void Buggy::collide(const Collidable *c) {
+		reset_position();
 	}
 
 	bool Buggy::can_move(const Vector2f &delta_, Map &m) {
 		attach_wheels();
 
-		if (collide(delta_, m) || left_tire.collide(delta_, m) || right_tire.collide(delta_, m))
+		if (check_collision(delta_, m) || left_tire.check_collision(delta_, m) || right_tire.check_collision(delta_, m))
 			return false;
 
 		return Game_Object::can_move(delta_, m);
 	}
 
 	void Buggy::step(const float &time_step, Map &m) {
+		bool leftc = left_tire.check_collision(m);
+		bool rightc = right_tire.check_collision(m);
+
 		if (m_jump.can_jump) {
 			accelerate((m_controls.right - m_controls.left) * time_step * get_acceleration());
 		}
@@ -111,9 +118,6 @@ public:
 		move_forward(time_step * get_speed(), m);
 
 		//fall
-		bool leftc = left_tire.collide(m);
-		bool rightc = right_tire.collide(m);
-
 		if (!leftc && !rightc) {
 			if (!move_down(time_step * gravity, m)) {
 				m_jump.can_jump = true;
