@@ -4,7 +4,6 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <cassert>
 
 #include "Collidable.h"
 
@@ -22,18 +21,16 @@ class Tile : public Collidable {
 	int id;
 	Point2f position;
 	string texture;
-	bool can_collide;
 
 public:
-	Tile(int id_, string texture_, bool collide_) {
+	Tile(int id_, string texture_, vector<Point2f> collide_ = {}) 
+		: Collidable(collide_)
+	{
 		id = id_;
 		texture = texture_;
-		can_collide = collide_;
 	}
 
 	static Tile *Tile::make_tile(int id_);
-
-	virtual bool Tile::collide(const Point2f &pos) { assert(false); return can_collide; }
 
 	void Tile::render(float x, float y) const
 	{
@@ -58,28 +55,94 @@ public:
 	void Tile::render(Point2f p) const {
 		render(p.x, p.y); 
 	}
+
+protected:
+	void change_texture(string tex) {
+		texture = tex;
+	}
 };
 
 class Ground_Tile : public Tile {
 public:
-	Ground_Tile(int id_, string texture_) : Tile(id_, texture_, true) {};
+	Ground_Tile(int id_, string texture_) 
+		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(tile_size, 0.0f), Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
+	{
+	}
 
-	virtual bool Ground_Tile::collide(const Point2f &pos) {
+	bool Ground_Tile::collide(const Point2f &pos) override {
 		return true;
-		Point2f tpos = get_position();
-		if ((pos.x >= tpos.x) && (pos.x <= (tpos.x + tile_size)) &&
-			(pos.y >= tpos.y) && (pos.y <= (tpos.y + tile_size)))
-			return true;
+	}
+
+};
+
+class Ground_Half_Tile : public Tile {
+public:
+	Ground_Half_Tile(int id_, string texture_)
+		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, tile_size / 2), Point2f(tile_size, tile_size / 2), Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
+	{
+	}
+
+	bool Ground_Half_Tile::collide(const Point2f &pos) override {
+		return true;
+	}
+
+};
+
+
+class Slope_Bottom_Tile : public Tile {
+public:
+	Slope_Bottom_Tile(int id_, string texture_)
+		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, tile_size), Point2f(tile_size, tile_size / 2), Point2f(tile_size, tile_size) })
+	{
+	}
+
+};
+
+class Slope_Top_Tile : public Tile {
+public:
+	Slope_Top_Tile(int id_, string texture_)
+		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, tile_size / 2), Point2f(tile_size, 0.0f), Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
+	{
+	}
+
+	bool Slope_Top_Tile::collide(const Point2f &pos) override {
+
+		return true;
+	}
+
+};
+
+class Mars_Rock_Tile : public Tile {
+public:
+	Mars_Rock_Tile(int id_, string texture_)
+		: Tile(id_, texture_)
+	{
+	}
+
+	bool Mars_Rock_Tile::collide(const Point2f &pos) override {
+		change_texture("sky");
 		return false;
 	}
 };
 
 Tile *Tile::make_tile(int id_) {
 	switch (id_) {
+	case 6:
+		return new Tile(id_, "sky3");
+	case 5:
+		return new Tile(id_, "sky2");
 	case 0:
-		return new Tile(0, "blank", false);
+		return new Tile(id_, "sky");
 	case 1:
-		return new Tile(1, "ground", true);
+		return new Ground_Tile(id_, "ground");
+	case 2:
+		return new Ground_Half_Tile(id_, "ground_half");
+	case 3:
+		return new Slope_Bottom_Tile(id_, "slope_bottom");
+	case 4:
+		return new Slope_Top_Tile(id_, "slope_top");
+	case 7:
+		return new Mars_Rock_Tile(id_, "mars_rock");
 	default:
 		return nullptr;
 	}

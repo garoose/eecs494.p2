@@ -8,6 +8,7 @@
 #include <string>
 #include "Buggy.h"
 #include "map.h"
+#include "Score.h"
 
 #if defined(_DEBUG) && defined(_WINDOWS)
 #define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
@@ -47,6 +48,8 @@ private:
   float map_scroll_speed;
 
   Buggy m_buggy;
+
+  Score m_score;
 
   void on_push() {
     //get_Window().mouse_grab(true);
@@ -131,7 +134,7 @@ private:
 
   void Play_State::render_bg()
   {
-	  map1.render_all(game_resolution, top_left);
+	  map1.render_all(game_resolution, top_left, m_buggy);
   }
 
   void Play_State::render() {
@@ -143,6 +146,8 @@ private:
 
 	  m_buggy.render();
 	  m_buggy.render_collisions(map1);
+
+	  m_score.render(top_left);
   }
 
 };

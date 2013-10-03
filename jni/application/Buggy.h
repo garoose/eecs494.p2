@@ -1,10 +1,13 @@
 #pragma once
 
 #include <zenilib.h>
+#include <vector>
+
 #include "Game_Object.h"
 #include "Map.h"
 #include "Collidable.h"
 
+using std::vector;
 using namespace Zeni;
 
 static float gravity = 140.0f;
@@ -69,7 +72,7 @@ private:
 	Tire right_tire;
 
 public:
-	Buggy(const Point2f &position_,
+	Buggy::Buggy(const Point2f &position_,
 		const Vector2f &size_,
 		const float &theta_,
 		const float &speed_,
@@ -77,21 +80,21 @@ public:
 		const float &max_speed_,
 		const float &acceleration_)
 		: Game_Object(position_, size_, theta_, speed_, min_speed_, max_speed_, acceleration_),
-		Collidable(vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_.x, 0.0f), Point2f(size_.x, size_.y), Point2f(0.0f, size_.y) }),
+		Collidable(vector<Point2f> { Point2f(30.0f, 25.0f), Point2f(size_.x - 100.0f, 25.0f), Point2f(size_.x - 10.0f, size_.y - 10.0f), Point2f(30.0f, size_.y - 10.0f) }),
 		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f)),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f))
 	{
 	}
 
-	bool collide(Collidable &c) {
+	bool Buggy::collide(Collidable &c) {
 		return Collidable::collide(get_position(), c);
 	}
 
-	bool collide(const Vector2f &delta, Collidable &c) {
+	bool Buggy::collide(const Vector2f &delta, Collidable &c) {
 		return Collidable::collide(get_position() + delta, c);
 	}
 
-	bool can_move(const Vector2f &delta_, Map &m) {
+	bool Buggy::can_move(const Vector2f &delta_, Map &m) {
 		attach_wheels();
 
 		if (collide(delta_, m) || left_tire.collide(delta_, m) || right_tire.collide(delta_, m))
@@ -100,7 +103,7 @@ public:
 		return Game_Object::can_move(delta_, m);
 	}
 
-	void step(const float &time_step, Map &m) {
+	void Buggy::step(const float &time_step, Map &m) {
 		if (m_jump.can_jump) {
 			accelerate((m_controls.right - m_controls.left) * time_step * get_acceleration());
 		}
@@ -116,6 +119,8 @@ public:
 				m_jump.can_jump = true;
 				m_jump.in_jump = false;
 			}
+			else 
+				m_jump.can_jump = false;
 		} else {
 			m_jump.can_jump = true;
 			m_jump.in_jump = false;
@@ -146,14 +151,14 @@ public:
 		attach_wheels();
 	}
 
-	void render() const {
+	void Buggy::render() const {
 		Game_Object::render("buggy");
 
 		left_tire.render();
 		right_tire.render();
 	}
 
-	void render_collisions(Map &m) const {
+	void Buggy::render_collisions(Map &m) const {
 		Collidable::render(get_position(), m);
 		left_tire.render_collisions(m);
 		right_tire.render_collisions(m);

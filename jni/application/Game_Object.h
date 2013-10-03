@@ -43,14 +43,13 @@ public:
 
 	virtual void render() const = 0; // pure virtual function call
 
-	virtual bool can_move(const Vector2f &delta_, Map m) {
+	virtual bool can_move(const Vector2f &delta_, Map &m) {
 		if ((m_position.x + delta_.x) < 0)
 			return false;
 
 		return true;
 	}
 
-public:
 	const Point2f & get_position() const { return m_position; }
 	const Vector2f & get_size() const { return m_size; }
 	const float & get_theta() const { return m_theta; }

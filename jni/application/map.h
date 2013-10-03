@@ -9,6 +9,7 @@
 #include <iterator>
 #include <exception>
 
+#include "Collidable.h"
 #include "Tile.h"
 
 using std::vector;
@@ -32,7 +33,7 @@ public:
 	Map::~Map() {
 		for (unsigned int x = 0; x < map[0].size(); x++) {
 			for (unsigned int y = 0; y < map.size(); y++) {
-				delete get(x, y);
+				//delete get(x, y);
 			}
 		}
 	}
@@ -66,7 +67,7 @@ public:
 		file.close();
 	}
 
-	bool Map::collide(Point2f pos) {
+	bool Map::collide(const Point2f &pos) override {
 		//Find the relevant tile to collide with
 		unsigned int tx = int(floor(pos.x / tile_size));
 		unsigned int ty = int(floor(pos.y / tile_size));
@@ -77,14 +78,16 @@ public:
 		return false;
 	}
 
-	void Map::render_all(Vector2f game_resolution, Point2f top_left) const {
+	void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable &b) const {
 		for (float x = 0; x < map[0].size() * tile_size; x += tile_size) {
 			for (float y = 0; y < map.size() * tile_size; y += tile_size) {
 				unsigned int tx = int(floor((x) / tile_size));
 				unsigned int ty = int(floor((y) / tile_size));
 
-				if ((map.size() > ty) && (map[0].size() > tx))
+				if ((map.size() > ty) && (map[0].size() > tx)) {
 					get(tx, ty)->render(x, y);
+					//get(tx, ty)->Collidable::render(Point2f(x, y), b);
+				}
 			}
 		}
 	}

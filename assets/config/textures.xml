@@ -53,10 +53,43 @@ The following things are unsupported:
     <filepath>textures/blank.png</filepath>
     <tile>1</tile>
   </blank>
+  <sky>
+    <filepath>textures/sky.png</filepath>
+    <tile>1</tile>
+  </sky>
+  <sky2>
+    <filepath>textures/sky2.png</filepath>
+    <tile>1</tile>
+  </sky2>
+  <sky3>
+    <filepath>textures/sky3.png</filepath>
+    <tile>1</tile>
+  </sky3>
   <ground>
-    <filepath>textures/ground.png</filepath>
+    <filepath>textures/ground2.png</filepath>
     <tile>1</tile>
   </ground>
+  <ground_half>
+    <filepath>textures/ground_half.png</filepath>
+    <tile>1</tile>
+  </ground_half>
+  <slope_bottom>
+    <filepath>textures/slope1.png</filepath>
+    <tile>1</tile>
+  </slope_bottom>
+  <slope_top>
+    <filepath>textures/slope2.png</filepath>
+    <tile>1</tile>
+  </slope_top>
+  <mars_rock>
+    <filepath>textures/mars_rock2.png</filepath>
+    <tile>1</tile>
+  </mars_rock>
+  <asteroid>
+    <filepath>textures/asteroid.png</filepath>
+    <tile>0</tile>
+  </asteroid>
+
   <!--
   <one>
     <is_sprite>0</is_sprite>

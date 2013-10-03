@@ -4,8 +4,6 @@
 
 #include <zenilib.h>
 
-#include "Map.h"
-
 using std::vector;
 using namespace Zeni;
 
@@ -36,6 +34,25 @@ public:
 
 			Line_Segment<Vertex2f_Color> l(Vertex2f_Color(p0, col), Vertex2f_Color(p1, col));
 			get_Video().render(l);
+			/*
+			if (p0.x == p1.x) {
+				Point2f start = p0.y > p1.y ? p1 : p0;
+				Point2f end = p0.y > p1.y ? p0 : p1;
+				for (Point2f pp = start; pp.y <= end.y; pp.y++) {
+					col = get_Colors()["purple"];
+					Line_Segment<Vertex2f_Color> ll(Vertex2f_Color(pp, col), Vertex2f_Color(Point2f(pp.x, pp.y - 10.0f), col));
+					get_Video().render(ll);
+				}
+			} else {
+				Point2f start = p0.x > p1.x ? p1 : p0;
+				Point2f end = p0.x > p1.x ? p0 : p1;
+				for (Point2f pp = start; pp.x <= end.x && pp.y <= end.y; pp.x += 1, pp.y = liney(p0, p1, pp.x)) {
+					col = get_Colors()["purple"];
+					Line_Segment<Vertex2f_Color> ll(Vertex2f_Color(pp, col), Vertex2f_Color(Point2f(pp.x, pp.y - 10.0f), col));
+					get_Video().render(ll);
+				}
+			}
+			*/
 		}
 	}
 
@@ -49,20 +66,27 @@ public:
 		for (unsigned int p = 0; p < cbox.size(); p++) {
 			Point2f p0 = pos + cbox[p];
 			Point2f p1 = p == cbox.size() - 1 ? pos + cbox[0] : pos + cbox[p + 1];
-			float delta = 1;
 
 			//check for collisions along each line segment
-			Point2f start = p0.x > p1.x ? p0 : p1;
-			Point2f end = p0.x > p1.x ? p1 : p0;
-			for (Point2f pp = start; pp.x <= end.x && pp.y <= end.y; pp.x += delta, pp.y = liney(p0, p1, pp.x)) {
-				if (c.collide(pp))
-					return true;
+			if (p0.x == p1.x) {
+				Point2f start = p0.y > p1.y ? p1 : p0;
+				Point2f end = p0.y > p1.y ? p0 : p1;
+				for (Point2f pp = start; pp.y <= end.y; pp.y++) {
+					if (c.collide(pp))
+						return true;
+				}
+			} else {
+				Point2f start = p0.x > p1.x ? p1 : p0;
+				Point2f end = p0.x > p1.x ? p0 : p1;
+				for (Point2f pp = start; pp.x <= end.x && pp.y <= end.y; pp.x += 1, pp.y = liney(p0, p1, pp.x)) {
+					if (c.collide(pp))
+						return true;
+				}
 			}
 		}
 
 		return false;
 	}
-
 
 	//Return true if this object is colliding with pos
 	virtual bool Collidable::collide(const Point2f &pos) {
