@@ -5,7 +5,6 @@
 
 #include "Game_Object.h"
 #include "Map.h"
-#include "Collidable.h"
 
 using std::vector;
 using namespace Zeni;
@@ -16,6 +15,7 @@ enum jump_state { up, down };
 
 class Tire : public Collidable {
 	float size;
+	float theta;
 	float attach_theta;
 	float attach_distance;
 	Point2f position;
@@ -23,7 +23,8 @@ class Tire : public Collidable {
 public:
 	Tire::Tire(const float &size_, const float &theta_, const float &distance_)
 		: size(size_), attach_theta(theta_), attach_distance(distance_), position(0.0f, 0.0f),
-		Collidable(vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) })
+		Collidable(vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) }),
+		theta(0.0f)
 		//Collidable(Vector2f(size, size))
 	{
 	}
@@ -58,7 +59,7 @@ public:
 	}
 
 	const Point2f &get_position() const override { return position; }
-	const float &get_theta() const override { return 0; }
+	const float &get_theta() const override { return theta; }
 	const float &get_size() const { return size; }
 	Point2f bottom() const { return Point2f(position.x, size + position.y); }
 };
@@ -87,7 +88,7 @@ public:
 	}
 
 	bool Buggy::check_collision(const Vector2f &delta, Collidable *c) {
-		return Collidable::check_collision(Game_Object::get_position() + delta, Game_Object::get_theta(), c);
+		return Collidable::check_collision(get_position() + delta, get_theta(), c);
 	}
 
 	void Buggy::collide(const Collidable *c) {

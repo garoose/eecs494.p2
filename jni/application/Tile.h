@@ -16,17 +16,19 @@ class Tile;
 
 static const float tile_size = 64.0f;
 
-class Tile { //: public Collidable {
+class Tile : public Collidable {
 	int id;
 	Point2f position;
 	string texture;
+	float theta;
 	bool flip;
 
 public:
 	Tile(int id_, string texture_, bool flip_ = false, vector<Point2f> collide_ = {}) 
-		:// Collidable(collide_),
+		: Collidable(collide_),
 		id(id_),
 		texture(texture_),
+		theta(0.0f),
 		flip(flip_)
 	{
 	}
@@ -60,7 +62,7 @@ public:
 	}
 
 	const Point2f &Tile::get_position() const { return position; }
-	const float &get_theta() const { return 0; }
+	const float &get_theta() const { return theta; }
 	int Tile::get_id() const { return id; }
 	string Tile::get_texture() const { return texture; }
 
@@ -129,7 +131,7 @@ public:
 	{
 	}
 
-	bool Mars_Rock_Tile::check_collision(const Point2f &pos) { //override {
+	bool Mars_Rock_Tile::check_collision(const Point2f &pos) override {
 		change_texture("sky");
 		return false;
 	}

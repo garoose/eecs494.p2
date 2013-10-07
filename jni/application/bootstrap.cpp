@@ -7,7 +7,7 @@
 #include <zenilib.h>
 #include <string>
 #include "Buggy.h"
-#include "map.h"
+#include "Map.h"
 #include "Score.h"
 
 #if defined(_DEBUG) && defined(_WINDOWS)
@@ -17,6 +17,9 @@
 
 using namespace std;
 using namespace Zeni;
+
+//Global score variable
+Score m_score;
 
 class Play_State : public Gamestate_Base
 {
@@ -49,7 +52,6 @@ private:
 
   Buggy m_buggy;
 
-  Score m_score;
 
   void on_push() {
     //get_Window().mouse_grab(true);

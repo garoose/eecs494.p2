@@ -1,12 +1,14 @@
 #pragma once
 
 #include <zenilib.h>
+#include <vector>
 
 #include "Game_Object.h"
 #include "Map.h"
 
 using namespace Zeni;
-/*
+using std::vector;
+
 class Asteroid : public Game_Object {
 public:
 	Asteroid::Asteroid(const Point2f &position_,
@@ -28,4 +30,3 @@ public:
 	}
 };
 
-*/

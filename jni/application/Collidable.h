@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vector>
 #include <zenilib.h>
+#include <vector>
 
-#include "Buggy.h"
-#include "Tile.h"
-
-using std::vector;
 using namespace Zeni;
+using std::vector;
+
+class Buggy;
+class Tile;
 
 class Collidable {
 private:
@@ -119,36 +119,41 @@ public:
 	{
 	}
 
-	//virtual void Collidable::collide(const Buggy *c)
-	//{
-	//}
+	virtual void Collidable::collide(const Buggy *c)
+	{
+	}
 
 private:
 	float liney(const Point2f &p0, const Point2f &p1, const float &x) const {
 		return p0.y + ((p1.y - p0.y) / (p1.x - p0.x) * (x - p0.x));
 	}
 
-	
+	//Adjusts a collision box corner for position and theta
+	Point2f adjust_point(const Point2f &pos) {
+		return pos + get_position();
+	}
 
 	//FIXME: comparing absolute to relative
 	bool pointInPolygon(const Point2f &pos) {
 		Point2f p = get_position();
 		const float &theta = get_theta();
 
-		if (cbox.size() == 1)
-			return (p.x == cbox[0].x && p.y == cbox[0].y);
+		if (cbox.size() == 1) {
+			Point2f pc = adjust_point(cbox[0]);
+			return (p.x == pc.x && p.y == pc.y);
+		}
 
 		unsigned int  i, j = cbox.size() - 1;
 		bool oddNodes = false;
 
 		for (i = 0; i < cbox.size(); i++) {
-			Point2f pi(cbox[i].x + pos.x, cbox[i].y + pos.y);
-			Point2f pj(cbox[j].x + pos.x, cbox[j].y + pos.y);
+			Point2f pi(adjust_point(cbox[i]));
+			Point2f pj(adjust_point(cbox[j]));
 
-			if ((cbox[i].y < p.y && cbox[j].y >= p.y
-				|| cbox[j].y < p.y && cbox[i].y >= p.y)
-				&&  (cbox[i].x <= p.x || cbox[j].x <= p.x)) {
-					oddNodes ^= (cbox[i].x + (p.y - cbox[i].y) / (cbox[j].y - cbox[i].y)*(cbox[j].x - cbox[i].x) < p.x);
+			if ((pi.y < p.y && pj.y >= p.y
+				|| pj.y < p.y && pi.y >= p.y)
+				&&  (pi.x <= p.x || pj.x <= p.x)) {
+					oddNodes ^= (pi.x + (p.y - pi.y) / (pj.y - pi.y)*(pj.x - pi.x) < p.x);
 			}
 			j = i;
 		}
