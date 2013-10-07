@@ -22,7 +22,7 @@ using namespace Zeni;
 
 class Map : public Collidable {
 	vector<vector<Tile *>> map;
-	vector<Game_Object *> list;
+	//vector<Game_Object *> list;
 
 public:
 	Map::Map()
@@ -39,7 +39,15 @@ public:
 				//delete get(x, y);
 			}
 		}
+
+		//for (auto it = list.begin(); it != list.end(); ++it) {
+		//	delete (*it);
+		//}
 	}
+
+	//Not needed by Map collidable
+	const Point2f &get_position() const override { return Point2f();  }
+	const float &get_theta() const override { return 0.0f; }
 
 	void Map::load(string filename) {
 		std::ifstream file(filename);
@@ -51,9 +59,7 @@ public:
 		int rows = stoi(line);
 
 		while (getline(file, line) && rows > 0) {
-			std::istringstream iss(line);
-			std::istream_iterator<string> begin(iss), end;
-			vector<string> words(begin, end);
+			auto words = split_string(line);
 			vector<Tile *> temp;
 
 			if (!len)
@@ -72,19 +78,18 @@ public:
 
 		//Read in object list
 		while (getline(file, line)) {
-			std::istringstream iss(line);
-			std::istream_iterator<string> begin(iss), end;
-			vector<string> words(begin, end);
+			auto words = split_string(line);
 
-			if (words[0] == "asteroid") {
-				list.push_back(new Asteroid(Point2f(stof(words[1]), stof(words[2])), 
-					Vector2f(stof(words[3]), stof(words[4])), Global::pi, stof(words[6]));
-			}
+		//	if (words[0] == "asteroid") {
+			//	list.push_back(new Asteroid(Point2f(stof(words[1]), stof(words[2])), 
+			//		Vector2f(stof(words[3]), stof(words[4])), Global::pi * stof(words[5]), stof(words[6])));
+			//}
 
 		}
 
 		file.close();
 	}
+
 
 	bool Map::check_collision(const Point2f &pos) override {
 		//Find the relevant tile to collide with
@@ -92,7 +97,8 @@ public:
 		unsigned int ty = int(floor(pos.y / tile_size));
 
 		if ((map.size() > ty) && (map[0].size() > tx))
-			return get(tx, ty)->check_collision(pos);
+			return false;
+			//return get(tx, ty)->check_collision(pos);
 
 		return false;
 	}
@@ -110,15 +116,19 @@ public:
 			}
 		}
 
-		for each (Game_Object *o in list) {
-			o->render();
-		}
+		//for (auto it = list.begin(); it != list.end(); ++it) {
+		//	float x = (*it)->get_position().x;
+		//	if (x >= top_left.x && x <= top_left.x + game_resolution.x)
+		//		(*it)->render();
+		//}
 	}
 
-	void Map::step_all(const float &time_step) {
-		for each (Game_Object *o in list) {
-			o->step(time_step, *this);
-		}
+	void Map::step_all(const float &time_step, Vector2f game_resolution, Point2f top_left) {
+		//for (auto it = list.begin(); it != list.end(); ++it) {
+		//	float x = (*it)->get_position().x;
+		//	if (x >= top_left.x && x <= top_left.x + game_resolution.x)
+		//		(*it)->step(time_step, this);
+		//}
 	}
 
 	Tile *Map::get(int x, int y) const {
@@ -131,5 +141,12 @@ public:
 
 	string Map::get_texture(int x, int y) const {
 		return get(x, y)->get_texture();
+	}
+	
+private:
+	vector<string> Map::split_string(string line) {
+		std::istringstream iss(line);
+		std::istream_iterator<string> begin(iss), end;
+		return vector<string>(begin, end);
 	}
 };

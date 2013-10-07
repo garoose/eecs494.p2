@@ -2,7 +2,6 @@
 
 #include <zenilib.h>
 #include <vector>
-#include <map>
 #include <string>
 
 #include "Collidable.h"
@@ -17,17 +16,19 @@ class Tile;
 
 static const float tile_size = 64.0f;
 
-class Tile : public Collidable {
+class Tile { //: public Collidable {
 	int id;
 	Point2f position;
 	string texture;
+	bool flip;
 
 public:
-	Tile(int id_, string texture_, vector<Point2f> collide_ = {}) 
-		: Collidable(collide_)
+	Tile(int id_, string texture_, bool flip_ = false, vector<Point2f> collide_ = {}) 
+		:// Collidable(collide_),
+		id(id_),
+		texture(texture_),
+		flip(flip_)
 	{
-		id = id_;
-		texture = texture_;
 	}
 
 	static Tile *Tile::make_tile(int id_);
@@ -36,10 +37,20 @@ public:
 	{
 		Video &vr = get_Video();
 
-		Vertex2f_Texture p0(Point2f(x, y), Point2f(0.0f, 0.0f));
-		Vertex2f_Texture p1(Point2f(x, y + tile_size), Point2f(0.0f, 1.0f));
-		Vertex2f_Texture p2(Point2f(x + tile_size, y + tile_size), Point2f(1.0f, 1.0f));
-		Vertex2f_Texture p3(Point2f(x + tile_size, y), Point2f(1.0f, 0.0f));
+		Vertex2f_Texture p0, p1, p2, p3;
+
+		if (flip) {
+			p0 = Vertex2f_Texture(Point2f(x, y), Point2f(1.0f, 0.0f));
+			p1 = Vertex2f_Texture(Point2f(x, y + tile_size), Point2f(0.0f, 0.0f));
+			p2 = Vertex2f_Texture(Point2f(x + tile_size, y + tile_size), Point2f(0.0f, 1.0f));
+			p3 = Vertex2f_Texture(Point2f(x + tile_size, y), Point2f(1.0f, 1.0f));
+		} else {
+			p0 = Vertex2f_Texture(Point2f(x, y), Point2f(0.0f, 0.0f));
+			p1 = Vertex2f_Texture(Point2f(x, y + tile_size), Point2f(0.0f, 1.0f));
+			p2 = Vertex2f_Texture(Point2f(x + tile_size, y + tile_size), Point2f(1.0f, 1.0f));
+			p3 = Vertex2f_Texture(Point2f(x + tile_size, y), Point2f(1.0f, 0.0f));
+		}
+
 		Material material(texture.c_str());
 
 		Quadrilateral<Vertex2f_Texture> quad(p0, p1, p2, p3);
@@ -48,7 +59,8 @@ public:
 		vr.render(quad);
 	}
 
-	Point2f Tile::get_position() const { return position; }
+	const Point2f &Tile::get_position() const { return position; }
+	const float &get_theta() const { return 0; }
 	int Tile::get_id() const { return id; }
 	string Tile::get_texture() const { return texture; }
 
@@ -65,7 +77,9 @@ protected:
 class Ground_Tile : public Tile {
 public:
 	Ground_Tile(int id_, string texture_) 
-		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(tile_size, 0.0f), Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
+		: Tile(id_, texture_, false,
+		vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(tile_size, 0.0f),
+						  Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
 	{
 	}
 
@@ -78,7 +92,9 @@ public:
 class Ground_Half_Tile : public Tile {
 public:
 	Ground_Half_Tile(int id_, string texture_)
-		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, tile_size / 2), Point2f(tile_size, tile_size / 2), Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
+		: Tile(id_, texture_, false,
+		vector<Point2f> { Point2f(0.0f, tile_size / 2), Point2f(tile_size, tile_size / 2),
+						  Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
 	{
 	}
 
@@ -87,8 +103,9 @@ public:
 
 class Slope_Bottom_Tile : public Tile {
 public:
-	Slope_Bottom_Tile(int id_, string texture_)
-		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, tile_size), Point2f(tile_size, tile_size / 2), Point2f(tile_size, tile_size) })
+	Slope_Bottom_Tile(int id_, string texture_, bool flip_ = false)
+		: Tile(id_, texture_, flip_,
+		vector<Point2f> { Point2f(0.0f, tile_size), Point2f(tile_size, tile_size / 2), Point2f(tile_size, tile_size) })
 	{
 	}
 
@@ -96,8 +113,10 @@ public:
 
 class Slope_Top_Tile : public Tile {
 public:
-	Slope_Top_Tile(int id_, string texture_)
-		: Tile(id_, texture_, vector<Point2f> { Point2f(0.0f, tile_size / 2), Point2f(tile_size, 0.0f), Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
+	Slope_Top_Tile(int id_, string texture_, bool flip_ = false)
+		: Tile(id_, texture_, flip_,
+		vector<Point2f> { Point2f(0.0f, tile_size / 2), Point2f(tile_size, 0.0f),
+						  Point2f(tile_size, tile_size), Point2f(0.0f, tile_size) })
 	{
 	}
 
@@ -110,7 +129,7 @@ public:
 	{
 	}
 
-	bool Mars_Rock_Tile::check_collision(const Point2f &pos) override {
+	bool Mars_Rock_Tile::check_collision(const Point2f &pos) { //override {
 		change_texture("sky");
 		return false;
 	}
@@ -134,6 +153,10 @@ Tile *Tile::make_tile(int id_) {
 		return new Slope_Top_Tile(id_, "slope_top");
 	case 7:
 		return new Mars_Rock_Tile(id_, "mars_rock");
+	case 8:
+		return new Slope_Bottom_Tile(id_, "slope_bottom", true);
+	case 9:
+		return new Slope_Top_Tile(id_, "slope_top", true);
 	default:
 		return nullptr;
 	}

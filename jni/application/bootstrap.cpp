@@ -80,6 +80,25 @@ private:
 	  Gamestate_Base::on_key(event);
   }
 
+  void adjust_map_scroll() {
+	  //TODO: speed up map scroll when buggy gets to certain point
+	  if (m_buggy.Game_Object::get_position().x >= top_left.x + (game_resolution.x * 0.20f)
+		  && m_buggy.Game_Object::get_position().x + m_buggy.get_size().x <= top_left.x + (game_resolution.x * 0.60f))
+		  map_scroll_speed = 0.0f;
+	  if (m_buggy.Game_Object::get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x))
+		  map_scroll_speed = 20.0f;
+	  else if (m_buggy.Game_Object::get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.75f))
+		  map_scroll_speed = 10.0f;
+	  else if (m_buggy.Game_Object::get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.60f))
+		  map_scroll_speed = 5.0f;
+	  else if (m_buggy.Game_Object::get_position().x < top_left.x - (game_resolution.x * 0.20f))
+		  map_scroll_speed = -20.0f;
+	  else if (m_buggy.Game_Object::get_position().x < top_left.x)
+		  map_scroll_speed = -10.0f;
+	  else if (m_buggy.Game_Object::get_position().x < top_left.x + (game_resolution.x * 0.05f))
+		  map_scroll_speed = -5.0f;
+  }
+
   void perform_logic() {
 	  // Update time_passed
 	  const float time_passed = m_chrono.seconds();
@@ -96,16 +115,18 @@ private:
 		  time_step = m_max_time_steps * m_max_time_step;
 
 	  while (time_step > m_max_time_step) {
-		  m_buggy.step(time_step, map1);
-		  map1.step_all(time_step);
-		  //top_left.x += map_scroll_speed * time_step;
+		  m_buggy.step(time_step, &map1);
+		  adjust_map_scroll();
+		  map1.step_all(time_step, game_resolution, top_left);
+		  top_left.x += map_scroll_speed * time_step;
 
 		  time_step -= m_max_time_step;
-		  map1.step_all(time_step);
 	  }
 
-	  m_buggy.step(time_step, map1);
-	  //top_left.x += map_scroll_speed * time_step;
+	  m_buggy.step(time_step, &map1);
+	  adjust_map_scroll();
+	  map1.step_all(time_step, game_resolution, top_left);
+	  top_left.x += map_scroll_speed * time_step;
 	  time_step = 0.0f;
 
 	  //FIXME: Temporary solution: end game when buggy frame collides
@@ -114,24 +135,7 @@ private:
 		  m_buggy.reset_position();
 	  }*/
 
-	  //TODO: speed up map scroll when buggy gets to certain point
-	  if (m_buggy.get_position().x >= top_left.x + (game_resolution.x * 0.20f)
-		  && m_buggy.get_position().x + m_buggy.get_size().x <= top_left.x + (game_resolution.x * 0.60f))
-		  map_scroll_speed = 0.0f;
-	  if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x))
-		  map_scroll_speed = 20.0f;
-	  else if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.75f))
-		  map_scroll_speed = 10.0f;
-	  else if (m_buggy.get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.60f))
-		  map_scroll_speed = 5.0f;
-	  else if (m_buggy.get_position().x < top_left.x - (game_resolution.x * 0.20f))
-		  map_scroll_speed = -20.0f;
-	  else if (m_buggy.get_position().x < top_left.x)
-		  map_scroll_speed = -10.0f;
-	  else if (m_buggy.get_position().x < top_left.x + (game_resolution.x * 0.05f))
-		  map_scroll_speed = -5.0f;
 
-	  top_left.x += map_scroll_speed;
   }
 
   void Play_State::render_bg()
@@ -147,7 +151,7 @@ private:
 	  render_bg();
 
 	  m_buggy.render();
-	  m_buggy.render_collisions(map1);
+	  m_buggy.render_collisions(&map1);
 
 	  m_score.render(top_left);
   }

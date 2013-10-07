@@ -16,28 +16,25 @@ enum jump_state { up, down };
 
 class Tire : public Collidable {
 	float size;
-	float theta;
-	float distance;
+	float attach_theta;
+	float attach_distance;
 	Point2f position;
 
 public:
 	Tire::Tire(const float &size_, const float &theta_, const float &distance_)
-		: size(size_), theta(theta_), distance(distance_), position(0.0f, 0.0f),
+		: size(size_), attach_theta(theta_), attach_distance(distance_), position(0.0f, 0.0f),
 		Collidable(vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) })
 		//Collidable(Vector2f(size, size))
 	{
 	}
 
-	bool Tire::check_collision(Collidable &c) {
-		return Collidable::check_collision(get_position(), c);
-	}
-
-	bool Tire::check_collision(const Vector2f &delta, Collidable &c) {
-		return Collidable::check_collision(get_position() + delta, c);
+	bool Tire::check_collision(const Vector2f &delta, Collidable *c) {
+		return Collidable::check_collision(get_position() + delta, get_theta(), c);
 	}
 
 	void Tire::attach(const Point2f &center, const float &forward) {
-		position = Point2f(center.x + distance * cos(forward - theta), center.y + distance * -sin(forward - theta));
+		position = Point2f(center.x + attach_distance * cos(forward - attach_theta), 
+			center.y + attach_distance * -sin(forward - attach_theta));
 		position -= Point2f(size * 0.5f, size * 0.5f);
 	}
 
@@ -56,16 +53,17 @@ public:
 		vr.render(quad);
 	}
 
-	void Tire::render_collisions(Collidable &c) const {
-		Collidable::render(get_position(), c);
+	void Tire::render_collisions(Collidable *c) {
+		Collidable::render(c);
 	}
 
-	const Point2f &get_position() const { return position; }
+	const Point2f &get_position() const override { return position; }
+	const float &get_theta() const override { return 0; }
 	const float &get_size() const { return size; }
 	Point2f bottom() const { return Point2f(position.x, size + position.y); }
 };
 
-class Buggy : public Game_Object, public Collidable {
+class Buggy : public Game_Object {
 private:
 	float tire_size;
 	Tire left_tire;
@@ -79,26 +77,24 @@ public:
 		const float &min_speed_,
 		const float &max_speed_,
 		const float &acceleration_)
-		: Game_Object(position_, size_, theta_, speed_, min_speed_, max_speed_, acceleration_),
-		Collidable(vector<Point2f> { Point2f(30.0f, 25.0f), Point2f(size_.x - 100.0f, 25.0f), Point2f(size_.x - 10.0f, size_.y - 10.0f), Point2f(30.0f, size_.y - 10.0f) }),
+		: Game_Object(position_, size_, 
+		vector<Point2f> { Point2f(30.0f, 25.0f), Point2f(size_.x - 100.0f, 25.0f),
+			Point2f(size_.x - 10.0f, size_.y - 10.0f), Point2f(30.0f, size_.y - 10.0f) },
+		theta_, speed_, min_speed_, max_speed_, acceleration_),
 		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f)),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f))
 	{
 	}
 
-	bool Buggy::check_collision(Collidable &c) {
-		return Collidable::check_collision(get_position(), c);
-	}
-
-	bool Buggy::check_collision(const Vector2f &delta, Collidable &c) {
-		return Collidable::check_collision(get_position() + delta, c);
+	bool Buggy::check_collision(const Vector2f &delta, Collidable *c) {
+		return Collidable::check_collision(Game_Object::get_position() + delta, Game_Object::get_theta(), c);
 	}
 
 	void Buggy::collide(const Collidable *c) {
 		reset_position();
 	}
 
-	bool Buggy::can_move(const Vector2f &delta_, Map &m) {
+	bool Buggy::can_move(const Vector2f &delta_, Map *m) {
 		attach_wheels();
 
 		if (check_collision(delta_, m) || left_tire.check_collision(delta_, m) || right_tire.check_collision(delta_, m))
@@ -107,9 +103,9 @@ public:
 		return Game_Object::can_move(delta_, m);
 	}
 
-	void Buggy::step(const float &time_step, Map &m) {
-		bool leftc = left_tire.check_collision(m);
-		bool rightc = right_tire.check_collision(m);
+	void Buggy::step(const float &time_step, Map *m) {
+		bool leftc = left_tire.check_collision(Vector2f(get_position().x, get_position().y - time_step * gravity), m);
+		bool rightc = right_tire.check_collision(Vector2f(get_position().x, get_position().y - time_step * gravity), m);
 
 		if (m_jump.can_jump) {
 			accelerate((m_controls.right - m_controls.left) * time_step * get_acceleration());
@@ -162,8 +158,8 @@ public:
 		right_tire.render();
 	}
 
-	void Buggy::render_collisions(Map &m) const {
-		Collidable::render(get_position(), m);
+	void Buggy::render_collisions(Map *m) {
+		Collidable::render(m);
 		left_tire.render_collisions(m);
 		right_tire.render_collisions(m);
 	}
@@ -222,11 +218,11 @@ private:
 	} m_jump;
 
 	void Buggy::attach_wheels() {
-		Point2f center(get_position().x + (get_size().x * 0.5f),
-			get_position().y + (get_size().y * 0.5f));
+		Point2f center(Game_Object::get_position().x + (get_size().x * 0.5f),
+			Game_Object::get_position().y + (get_size().y * 0.5f));
 
-		left_tire.attach(center, get_theta());
-		right_tire.attach(center, get_theta());
+		left_tire.attach(center, Game_Object::get_theta());
+		right_tire.attach(center, Game_Object::get_theta());
 	}
 
 };

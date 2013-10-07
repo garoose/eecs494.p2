@@ -1,12 +1,14 @@
 #pragma once
 
 #include <zenilib.h>
+#include <vector>
 
 #include "Map.h"
+#include "Collidable.h"
 
 using namespace Zeni;
 
-class Game_Object {
+class Game_Object : public Collidable {
 private:
 	Point2f m_position; // Upper left corner
 	Vector2f m_size; // (width, height)
@@ -21,6 +23,7 @@ private:
 public:
 	Game_Object(const Point2f &position_,
 		const Vector2f &size_,
+		const vector<Point2f> cbox_ = {},
 		const float &theta_ = 0.0f,
 		const float &speed_ = 0.0f,
 		const float &min_speed_ = 0.0f,
@@ -28,6 +31,7 @@ public:
 		const float &acceleration_ = 0.0f)
 		: m_position(position_),
 		m_size(size_),
+		Collidable(cbox_),
 		m_theta(theta_),
 		m_speed(speed_),
 		m_min_speed(min_speed_),
@@ -43,14 +47,14 @@ public:
 
 	virtual void render() const = 0; // pure virtual function call
 
-	virtual bool can_move(const Vector2f &delta_, Map &m) {
+	virtual bool can_move(const Vector2f &delta_, Map *m) {
 		if ((m_position.x + delta_.x) < 0)
 			return false;
 
 		return true;
 	}
 
-	virtual void step(const float &time_step, Map &m)
+	virtual void step(const float &time_step, Map *m)
 	{
 	}
 
@@ -69,7 +73,7 @@ public:
 		m_position = reset_pos;
 	}
 
-	void turn_left(const float &theta_, Map m) {
+	void turn_left(const float &theta_, Map *m) {
 		float start = m_theta;
 
 		m_theta += theta_;
@@ -84,18 +88,26 @@ public:
 		forward = Vector2f(cos(m_theta), -sin(m_theta));
 	}
 
-	void move_forward(const float &move_, Map m) {
-		Vector2f delta(move_ * forward.x, 0.0f);
-		
-		//FIXME: causes freezing
-		//while (delta.x && !can_move(delta)) {
-		//	delta.x += delta.x < 0 ? 0.0001f : -0.0001f;
-		//}
+	void move_right(const float &move_, Map *m) {
+		Vector2f delta(move_, 0.0f);
+
 		if (can_move(delta, m))
-			m_position.x += delta.i;
+			m_position.y += delta.y;
 	}
 
-	bool move_down(const float &move_, Map m) {
+	void move_forward(const float &move_, Map *m) {
+		Vector2f delta(move_ * forward.x, 0.0f);
+
+		if (can_move(delta, m))
+			m_position.x += delta.x;
+
+		delta = Vector2f(0.0f, move_ * forward.y);
+
+		if (can_move(delta, m))
+			m_position.y += delta.y;
+	}
+
+	bool move_down(const float &move_, Map *m) {
 		Vector2f delta(0.0f, move_);
 
 		//while (delta.y && !can_move(delta, m)) {
