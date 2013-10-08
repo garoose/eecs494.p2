@@ -23,7 +23,7 @@ private:
 public:
 	Game_Object(const Point2f &position_,
 		const Vector2f &size_,
-		const vector<Point2f> cbox_ = {},
+		const std::vector<Point2f> cbox_ = {},
 		const float &theta_ = 0.0f,
 		const float &speed_ = 0.0f,
 		const float &min_speed_ = 0.0f,
@@ -54,9 +54,7 @@ public:
 		return true;
 	}
 
-	virtual void step(const float &time_step, Map *m)
-	{
-	}
+	virtual void step(const float &time_step, Map *m) = 0;
 
 	const Point2f & get_position() const { return m_position; }
 	const Vector2f & get_size() const { return m_size; }
@@ -92,7 +90,7 @@ public:
 		Vector2f delta(move_, 0.0f);
 
 		if (can_move(delta, m))
-			m_position.y += delta.y;
+			m_position.x += delta.x;
 	}
 
 	void move_forward(const float &move_, Map *m) {

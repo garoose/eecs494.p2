@@ -9,10 +9,11 @@ using namespace Zeni;
 class Score {
 private:
 	int score;
+	int ckpt;
 
 public:
 	Score::Score() 
-		: score(0)
+		: score(0), ckpt(0)
 	{
 	}
 
@@ -28,6 +29,14 @@ public:
 
 	void Score::inc(int amt) {
 		score += amt;
+	}
+
+	void checkpoint() {
+		ckpt = score;
+	}
+
+	void reset() {
+		score = ckpt;
 	}
 
 };

@@ -2,14 +2,21 @@
 
 #include <zenilib.h>
 #include <vector>
+#include <string>
 
 #include "Game_Object.h"
 #include "Map.h"
+
+extern std::string test;
 
 using namespace Zeni;
 using std::vector;
 
 class Asteroid : public Game_Object {
+	std::string texture;
+	Chronometer<Time> remove;
+	bool gone;
+
 public:
 	Asteroid::Asteroid(const Point2f &position_,
 		const Vector2f &size_,
@@ -17,16 +24,50 @@ public:
 		const float &speed_)
 		: Game_Object(position_, size_,
 		vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_.x, 0.0f), Point2f(size_.x, size_.y), Point2f(0.0f, size_.y) },
-		theta_, speed_)
+		theta_, speed_),
+		texture("asteroid"),
+		gone(false)
 		{	
 		}
 
 	void Asteroid::render() const override {
-		Game_Object::render("asteroid");
+		if (!gone)
+			Game_Object::render(texture.c_str());
+	}
+	
+	void Asteroid::render_collisions(Map *m) {
+		Collidable::render(m);
+	}
+
+	void Asteroid::collide(Collidable *c) override {
+		test = "Asteroid Collide";
+		if (!gone) {
+			c->collide_with_asteroid(this);
+		}
+
+		remove.start();
+		texture = "asteroid_broken";
 	}
 
 	void Asteroid::step(const float &time_step, Map *m) {
-		move_forward(time_step * get_speed(), m);
+		if (gone)
+			return;
+
+		if (remove.seconds() == 0)
+			move_forward(time_step * get_speed(), m);
+
+		if (check_collision(m)) {
+			
+		}
+
+		if (remove.seconds() >= 1.0f)
+			gone = true;
+	}
+
+	void Asteroid::reset() {
+		gone = false;
+		remove.reset();
+		reset_position();
 	}
 };
 

@@ -20,6 +20,7 @@ using namespace Zeni;
 
 //Global score variable
 Score m_score;
+std::string test;
 
 class Play_State : public Gamestate_Base
 {
@@ -36,7 +37,7 @@ public:
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
 	  //      position,               size,                     theta,  speed,   min_speed, max_speed, acceleration
-	  m_buggy(Point2f(50.0f, 200.0f), Vector2f(256.0f, 128.0f), 0,      100.0f,  20.0f,     300.0f,    60.0f)
+	  m_buggy(Point2f(50.0f, 250.0f), Vector2f(256.0f, 128.0f), 0,      100.0f,  20.0f,     300.0f,    90.0f, &m_score)
   {
 	  // If our game has no real time component in real life, allow the user to pause the game.
 	  // This would be a BAD idea in a networked multiplayer mode for a game.
@@ -57,7 +58,6 @@ private:
     //get_Window().mouse_grab(true);
     get_Window().mouse_hide(true);
     //get_Game().joy_mouse.enabled = false;
-
 
 	m_chrono.start();
   }
@@ -84,21 +84,9 @@ private:
 
   void adjust_map_scroll() {
 	  //TODO: speed up map scroll when buggy gets to certain point
-	  if (m_buggy.Game_Object::get_position().x >= top_left.x + (game_resolution.x * 0.20f)
-		  && m_buggy.Game_Object::get_position().x + m_buggy.get_size().x <= top_left.x + (game_resolution.x * 0.60f))
-		  map_scroll_speed = 0.0f;
-	  if (m_buggy.Game_Object::get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x))
-		  map_scroll_speed = 20.0f;
-	  else if (m_buggy.Game_Object::get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.75f))
-		  map_scroll_speed = 10.0f;
-	  else if (m_buggy.Game_Object::get_position().x + m_buggy.get_size().x > top_left.x + (game_resolution.x * 0.60f))
-		  map_scroll_speed = 5.0f;
-	  else if (m_buggy.Game_Object::get_position().x < top_left.x - (game_resolution.x * 0.20f))
-		  map_scroll_speed = -20.0f;
-	  else if (m_buggy.Game_Object::get_position().x < top_left.x)
-		  map_scroll_speed = -10.0f;
-	  else if (m_buggy.Game_Object::get_position().x < top_left.x + (game_resolution.x * 0.05f))
-		  map_scroll_speed = -5.0f;
+	  float distance = (m_buggy.get_position().x + m_buggy.get_size().x) - (top_left.x + game_resolution.x / 4);
+
+	  map_scroll_speed = distance;
   }
 
   void perform_logic() {
@@ -136,13 +124,11 @@ private:
 		  play_sound("explode");
 		  m_buggy.reset_position();
 	  }*/
-
-
   }
 
   void Play_State::render_bg()
   {
-	  map1.render_all(game_resolution, top_left, m_buggy);
+	  map1.render_all(game_resolution, top_left, &m_buggy);
   }
 
   void Play_State::render() {
@@ -156,6 +142,14 @@ private:
 	  m_buggy.render_collisions(&map1);
 
 	  m_score.render(top_left);
+
+	  Zeni::Font &fr = get_Fonts()["title"];
+
+	  fr.render_text(
+		  test.c_str(),
+		  Point2f(top_left.x + 100.0f + 0.5f * fr.get_text_width(test.c_str()), top_left.y + 400.0f - 0.5f * fr.get_text_height()),
+		  get_Colors()["title_text"],
+		  ZENI_CENTER);
   }
 
 };
@@ -179,18 +173,24 @@ private:
   void render() {
     Widget_Gamestate::render();
 
-    Zeni::Font &fr = get_Fonts()["title"];
+    Zeni::Font &fr = get_Fonts()["system_36_x600"];
 
     fr.render_text(
+		"Use the left and right arrows or A and D\n to adjust the Buggy's speed\n\n"
+		"Press the up arrow or W to jump\n\n"
+		"Avoid crashing the buggy or being hit by asteroids!\n\n"
+		"Press "
 #if defined(_WINDOWS)
-                   "ALT+F4"
+        "ALT+F4"
 #elif defined(_MACOSX)
-                   "Apple+Q"
+        "Apple+Q"
 #else
-                   "Ctrl+Q"
+        "Ctrl+Q"
 #endif
-                           " to Quit",
-                   Point2f(400.0f, 300.0f - 0.5f * fr.get_text_height()),
+        " to Quit\n\n\n"
+						   
+		"Press escape to go back to the main menu",
+                   Point2f(400.0f, 100.0f - 0.5f * fr.get_text_height()),
                    get_Colors()["title_text"],
                    ZENI_CENTER);
   }

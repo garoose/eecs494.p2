@@ -43,7 +43,7 @@ public:
 
 	bool Map::check_collision(const Point2f &pos) override;
 
-	void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable &b) const;
+	void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) const;
 	void Map::step_all(const float &time_step, Vector2f game_resolution, Point2f top_left);
 
 	Tile *Map::get(int x, int y) const;

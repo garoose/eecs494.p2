@@ -55,6 +55,9 @@ void Map::load(string filename) {
 	int rows = stoi(line);
 
 	while (getline(file, line) && rows > 0) {
+		if (line[0] == '#')
+			continue;
+
 		auto words = split_string(line);
 		vector<Tile *> temp;
 
@@ -74,6 +77,9 @@ void Map::load(string filename) {
 
 	//Read in object list
 	while (getline(file, line)) {
+		if (line[0] == '#')
+			continue;
+
 		auto words = split_string(line);
 
 		if (words[0] == "asteroid") {
@@ -92,13 +98,12 @@ bool Map::check_collision(const Point2f &pos) {
 	unsigned int ty = int(floor(pos.y / tile_size));
 
 	if ((map.size() > ty) && (map[0].size() > tx))
-		return false;
-	return get(tx, ty)->check_collision(pos);
+		return get(tx, ty)->check_collision(pos);
 
 	return false;
 }
 
-void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable &b) const {
+void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) const {
 	for (float x = 0; x < map[0].size() * tile_size; x += tile_size) {
 		for (float y = 0; y < map.size() * tile_size; y += tile_size) {
 			unsigned int tx = int(floor((x) / tile_size));
@@ -106,7 +111,7 @@ void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable &b) 
 
 			if ((map.size() > ty) && (map[0].size() > tx)) {
 				get(tx, ty)->render(x, y);
-				//get(tx, ty)->Collidable::render(Point2f(x, y), b);
+				//get(tx, ty)->Collidable::render(Point2f(x, y), 0.0f, b);
 			}
 		}
 	}

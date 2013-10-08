@@ -4,10 +4,12 @@
 #include <vector>
 
 #include "Game_Object.h"
-#include "Map.h"
+#include "Score.h"
 
-using std::vector;
 using namespace Zeni;
+
+class Buggy;
+class Map;
 
 static float gravity = 140.0f;
 
@@ -19,40 +21,29 @@ class Tire : public Collidable {
 	float attach_theta;
 	float attach_distance;
 	Point2f position;
+	Buggy *m_buggy;
+	Score *m_score;
 
 public:
-	Tire::Tire(const float &size_, const float &theta_, const float &distance_)
+	Tire::Tire(const float &size_, const float &theta_, const float &distance_, Buggy *buggy_, Score *score_)
 		: size(size_), attach_theta(theta_), attach_distance(distance_), position(0.0f, 0.0f),
-		Collidable(vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) }),
-		theta(0.0f)
+		Collidable(std::vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) }),
+		theta(0.0f),
+		m_buggy(buggy_),
+		m_score(score_)
 		//Collidable(Vector2f(size, size))
 	{
 	}
 
-	bool Tire::check_collision(const Vector2f &delta, Collidable *c) {
-		return Collidable::check_collision(get_position() + delta, get_theta(), c);
-	}
+	bool Tire::check_collision(const Vector2f &delta, Collidable *c);
 
-	void Tire::attach(const Point2f &center, const float &forward) {
-		position = Point2f(center.x + attach_distance * cos(forward - attach_theta), 
-			center.y + attach_distance * -sin(forward - attach_theta));
-		position -= Point2f(size * 0.5f, size * 0.5f);
-	}
+	void Tire::collide(Collidable *c) override;
 
-	void Tire::render() const {
-		Video &vr = get_Video();
+	void Tire::collide_with_rock(Mars_Rock_Tile *r) override;
 
-		Vertex2f_Texture p0(position, Point2f(0.0f, 0.0f));
-		Vertex2f_Texture p1(Point2f(position.x, position.y + size), Point2f(0.0f, 1.0f ));
-		Vertex2f_Texture p2(Point2f(position.x + size, position.y + size), Point2f(1.0f, 1.0f));
-		Vertex2f_Texture p3(Point2f(position.x + size, position.y), Point2f(1.0f, 0.0f));
-		Material material("tire");
+	void Tire::attach(const Point2f &center, const float &forward);
 
-		Quadrilateral<Vertex2f_Texture> quad(p0, p1, p2, p3);
-		quad.fax_Material(&material);
-
-		vr.render(quad);
-	}
+	void Tire::render() const;
 
 	void Tire::render_collisions(Collidable *c) {
 		Collidable::render(c);
@@ -69,6 +60,7 @@ private:
 	float tire_size;
 	Tire left_tire;
 	Tire right_tire;
+	Score *m_score;
 
 public:
 	Buggy::Buggy(const Point2f &position_,
@@ -77,117 +69,35 @@ public:
 		const float &speed_,
 		const float &min_speed_,
 		const float &max_speed_,
-		const float &acceleration_)
-		: Game_Object(position_, size_, 
-		vector<Point2f> { Point2f(30.0f, 25.0f), Point2f(size_.x - 100.0f, 25.0f),
+		const float &acceleration_,
+		Score *score_)
+		: Game_Object(position_, size_,
+		std::vector<Point2f> { Point2f(30.0f, 25.0f), Point2f(size_.x - 100.0f, 25.0f),
 			Point2f(size_.x - 10.0f, size_.y - 10.0f), Point2f(30.0f, size_.y - 10.0f) },
 		theta_, speed_, min_speed_, max_speed_, acceleration_),
-		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f)),
-		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f))
+		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f), this, m_score),
+		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f), this, m_score),
+		m_score(score_)
 	{
 	}
 
-	bool Buggy::check_collision(const Vector2f &delta, Collidable *c) {
-		return Collidable::check_collision(get_position() + delta, get_theta(), c);
-	}
+	bool Buggy::check_collision(const Vector2f &delta, Collidable *c);
 
-	void Buggy::collide(const Collidable *c) {
-		reset_position();
-	}
+	void Buggy::collide(Collidable *c) override;
+	void Buggy::explode();
+	void Buggy::collide_with_rock(Mars_Rock_Tile *r) override;
 
-	bool Buggy::can_move(const Vector2f &delta_, Map *m) {
-		attach_wheels();
+	void Buggy::collect();
 
-		if (check_collision(delta_, m) || left_tire.check_collision(delta_, m) || right_tire.check_collision(delta_, m))
-			return false;
+	bool Buggy::can_move(const Vector2f &delta_, Map *m);
 
-		return Game_Object::can_move(delta_, m);
-	}
+	void Buggy::step(const float &time_step, Map *m);
 
-	void Buggy::step(const float &time_step, Map *m) {
-		bool leftc = left_tire.check_collision(Vector2f(get_position().x, get_position().y - time_step * gravity), m);
-		bool rightc = right_tire.check_collision(Vector2f(get_position().x, get_position().y - time_step * gravity), m);
+	void Buggy::render() const;
 
-		if (m_jump.can_jump) {
-			accelerate((m_controls.right - m_controls.left) * time_step * get_acceleration());
-		}
+	void Buggy::render_collisions(Map *m_);
 
-		move_forward(time_step * get_speed(), m);
-
-		//fall
-		if (!leftc && !rightc) {
-			if (!move_down(time_step * gravity, m)) {
-				m_jump.can_jump = true;
-				m_jump.in_jump = false;
-			}
-			else 
-				m_jump.can_jump = false;
-		} else {
-			m_jump.can_jump = true;
-			m_jump.in_jump = false;
-
-			if (!leftc)
-				turn_left(time_step * 2, m);
-			else if (!rightc)
-				turn_left(-time_step * 2, m);
-		}
-
-		//jump
-		if (m_jump.can_jump && m_controls.up) {
-			m_jump.jump();
-			m_controls.up = false;
-		}
-
-		if (m_jump.in_jump) {
-			if (m_jump.state == up) {
-				float deltaj = time_step * m_jump.speed;
-				m_jump.height += deltaj;
-				move_down(-deltaj, m);
-			}
-
-			if (m_jump.height >= m_jump.max_height)
-				m_jump.state = down;
-		}
-
-		attach_wheels();
-	}
-
-	void Buggy::render() const {
-		Game_Object::render("buggy");
-
-		left_tire.render();
-		right_tire.render();
-	}
-
-	void Buggy::render_collisions(Map *m) {
-		Collidable::render(m);
-		left_tire.render_collisions(m);
-		right_tire.render_collisions(m);
-	}
-
-	void Buggy::on_key(const SDL_KeyboardEvent &event) {
-		switch (event.keysym.sym) {
-		case SDLK_LEFT:
-		case SDLK_a:
-			m_controls.left = event.type == SDL_KEYDOWN;
-			break;
-
-		case SDLK_RIGHT:
-		case SDLK_d:
-			m_controls.right = event.type == SDL_KEYDOWN;
-			break;
-
-		case SDLK_UP:
-		case SDLK_w:
-			m_controls.up = event.type == SDL_KEYDOWN;
-			break;
-
-		case SDLK_DOWN:
-		case SDLK_s:
-			m_controls.down = event.type == SDL_KEYDOWN;
-			break;
-		}
-	}
+	void Buggy::on_key(const SDL_KeyboardEvent &event);
 
 private:
 	struct Controls {
@@ -197,7 +107,7 @@ private:
 		bool right;
 		bool up;
 		bool down;
-	} m_controls;
+	} m_controls; //end struct Controls
 
 	struct Jump {
 		Jump() : can_jump(false), in_jump(false), speed(700.0f), height(0.0f), max_height(120.0f) {}
@@ -216,7 +126,7 @@ private:
 			state = up;
 			can_jump = false;
 		}
-	} m_jump;
+	} m_jump; //end struct Jump
 
 	void Buggy::attach_wheels() {
 		Point2f center(Game_Object::get_position().x + (get_size().x * 0.5f),

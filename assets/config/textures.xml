@@ -89,6 +89,10 @@ The following things are unsupported:
     <filepath>textures/asteroid.png</filepath>
     <tile>0</tile>
   </asteroid>
+    <asteroid_broken>
+    <filepath>textures/asteroid_broken.png</filepath>
+    <tile>0</tile>
+  </asteroid_broken>
 
   <!--
   <one>
