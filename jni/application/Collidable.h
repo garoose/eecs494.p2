@@ -34,6 +34,7 @@ public:
 	//Need to define these in derived class
 	virtual const Point2f &get_position() const = 0;
 	virtual const float &get_theta() const = 0;
+	virtual const Vector2f &get_size() const = 0;
 
 	//Render lines to represent collision box
 	void Collidable::render(const Point2f &pos, const float &theta, Collidable *c);
@@ -74,6 +75,9 @@ private:
 	Point2f Collidable::adjust_point(const Point2f &p) {
 		return adjust_point(p, get_position(), get_theta());
 	}
+
+	inline int Collidable::isLeft(const Point2f &P0, const Point2f &P1, const Point2f &P2);
+	int Collidable::pointInPolygonWinding(const Point2f &P);
 
 	bool Collidable::pointInPolygon(const Point2f &point);
 };

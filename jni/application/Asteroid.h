@@ -15,7 +15,6 @@ using std::vector;
 class Asteroid : public Game_Object {
 	std::string texture;
 	Chronometer<Time> remove;
-	bool gone;
 
 public:
 	Asteroid::Asteroid(const Point2f &position_,
@@ -25,8 +24,7 @@ public:
 		: Game_Object(position_, size_,
 		vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_.x, 0.0f), Point2f(size_.x, size_.y), Point2f(0.0f, size_.y) },
 		theta_, speed_),
-		texture("asteroid"),
-		gone(false)
+		texture("asteroid")
 		{	
 		}
 
@@ -36,7 +34,7 @@ public:
 	}
 	
 	void Asteroid::render_collisions(Map *m) {
-		Collidable::render(m);
+		Collidable::render(nullptr);
 	}
 
 	void Asteroid::collide(Collidable *c) override {
@@ -56,7 +54,7 @@ public:
 		if (remove.seconds() == 0)
 			move_forward(time_step * get_speed(), m);
 
-		if (check_collision(m)) {
+		if (m->check_collision(this)) {
 			
 		}
 

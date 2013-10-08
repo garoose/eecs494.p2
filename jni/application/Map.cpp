@@ -52,9 +52,9 @@ void Map::load(string filename) {
 
 	//get the number of rows
 	getline(file, line);
-	int rows = stoi(line);
+	float rows = 0, num_rows = stoi(line);
 
-	while (getline(file, line) && rows > 0) {
+	while (getline(file, line) && rows < num_rows) {
 		if (line[0] == '#')
 			continue;
 
@@ -67,12 +67,12 @@ void Map::load(string filename) {
 			throw new exception("Inconsistent map file line lengths");
 
 		for (unsigned int i = 0; i < len; i++) {
-			temp.push_back(Tile::make_tile(std::stoi(words[i])));
+			temp.push_back(Tile::make_tile(std::stoi(words[i]), Point2f(i * tile_size.x, rows * tile_size.y)));
 		}
 
 		map.push_back(temp);
 
-		rows--;
+		rows++;
 	}
 
 	//Read in object list
@@ -92,41 +92,50 @@ void Map::load(string filename) {
 	file.close();
 }
 
-bool Map::check_collision(const Point2f &pos) {
-	//Find the relevant tile to collide with
-	unsigned int tx = int(floor(pos.x / tile_size));
-	unsigned int ty = int(floor(pos.y / tile_size));
+bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
+	float cx = c->get_position().x + delta_.x;
+	float cy = c->get_position().y + delta_.y;
 
-	if ((map.size() > ty) && (map[0].size() > tx))
-		return get(tx, ty)->check_collision(pos);
+	for (unsigned int x = cx; x < cx + c->get_size().x; x += tile_size.x) {
+		for (unsigned int y = cy; y < cy + c->get_size().y; y += tile_size.y) {
+			//Find the relevant tile to collide with
+			unsigned int tx = int(floor(x / tile_size.x));
+			unsigned int ty = int(floor(y / tile_size.y));
+
+			if ((map.size() > ty) && (map[0].size() > tx))
+				return c->check_collision(c->get_position() + delta_, c->get_theta(), get(tx, ty));
+		}
+	}
 
 	return false;
 }
 
-void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) const {
-	for (float x = 0; x < map[0].size() * tile_size; x += tile_size) {
-		for (float y = 0; y < map.size() * tile_size; y += tile_size) {
-			unsigned int tx = int(floor((x) / tile_size));
-			unsigned int ty = int(floor((y) / tile_size));
+void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) {
+	for (float x = 0; x < map[0].size() * tile_size.x; x += tile_size.x) {
+		for (float y = 0; y < map.size() * tile_size.y; y += tile_size.y) {
+			unsigned int tx = int(floor((x) / tile_size.x));
+			unsigned int ty = int(floor((y) / tile_size.y));
 
 			if ((map.size() > ty) && (map[0].size() > tx)) {
 				get(tx, ty)->render(x, y);
-				//get(tx, ty)->Collidable::render(Point2f(x, y), 0.0f, b);
+				get(tx, ty)->Collidable::render(Point2f(x, y), 0.0f, nullptr);
 			}
 		}
 	}
 
 	for each (Game_Object *o in list) {
 		float x = o->get_position().x;
-		if (x >= top_left.x && x <= top_left.x + game_resolution.x)
+		if (!o->is_gone() && x >= top_left.x - buffer && x <= top_left.x + game_resolution.x + buffer) {
 			o->render();
+			o->render_collisions(this);
+		}
 	}
 }
 
 void Map::step_all(const float &time_step, Vector2f game_resolution, Point2f top_left) {
 	for each (Game_Object *o in list) {
 		float x = o->get_position().x;
-		if (x >= top_left.x && x <= top_left.x + game_resolution.x)
+		if (!o->is_gone() && x >= top_left.x - buffer && x <= top_left.x + game_resolution.x + buffer)
 			o->step(time_step, this);
 	}
 }

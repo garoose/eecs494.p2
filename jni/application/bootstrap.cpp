@@ -43,6 +43,8 @@ public:
 	  // This would be a BAD idea in a networked multiplayer mode for a game.
 	  // (Or at the very least, this would be the wrong way to do it.)
 	  set_pausable(true);
+
+	  m_score.reset();
   }
 
 private:

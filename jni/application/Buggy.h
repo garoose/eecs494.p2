@@ -16,7 +16,7 @@ static float gravity = 140.0f;
 enum jump_state { up, down };
 
 class Tire : public Collidable {
-	float size;
+	Vector2f size;
 	float theta;
 	float attach_theta;
 	float attach_distance;
@@ -26,7 +26,7 @@ class Tire : public Collidable {
 
 public:
 	Tire::Tire(const float &size_, const float &theta_, const float &distance_, Buggy *buggy_, Score *score_)
-		: size(size_), attach_theta(theta_), attach_distance(distance_), position(0.0f, 0.0f),
+		: size(size_, size_), attach_theta(theta_), attach_distance(distance_), position(0.0f, 0.0f),
 		Collidable(std::vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) }),
 		theta(0.0f),
 		m_buggy(buggy_),
@@ -51,8 +51,8 @@ public:
 
 	const Point2f &get_position() const override { return position; }
 	const float &get_theta() const override { return theta; }
-	const float &get_size() const { return size; }
-	Point2f bottom() const { return Point2f(position.x, size + position.y); }
+	const Vector2f &get_size() const { return size; }
+	Point2f bottom() const { return Point2f(position.x, size.y + position.y); }
 };
 
 class Buggy : public Game_Object {

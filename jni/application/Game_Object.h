@@ -20,6 +20,9 @@ private:
 	float m_acceleration;
 	Point2f reset_pos;
 
+protected:
+	bool gone;
+
 public:
 	Game_Object(const Point2f &position_,
 		const Vector2f &size_,
@@ -38,7 +41,8 @@ public:
 		m_max_speed(max_speed_),
 		m_acceleration(acceleration_),
 		forward(cos(theta_), -sin(theta_)),
-		reset_pos(position_)
+		reset_pos(position_),
+		gone(false)
 	{
 	}
 
@@ -46,6 +50,8 @@ public:
 	virtual ~Game_Object() {}
 
 	virtual void render() const = 0; // pure virtual function call
+
+	virtual void render_collisions(Map *m) {}
 
 	virtual bool can_move(const Vector2f &delta_, Map *m) {
 		if ((m_position.x + delta_.x) < 0)
@@ -56,9 +62,9 @@ public:
 
 	virtual void step(const float &time_step, Map *m) = 0;
 
-	const Point2f & get_position() const { return m_position; }
-	const Vector2f & get_size() const { return m_size; }
-	const float & get_theta() const { return m_theta; }
+	const Point2f & get_position() const override { return m_position; }
+	const Vector2f & get_size() const override { return m_size; }
+	const float & get_theta() const override { return m_theta; }
 
 	const float get_radius() const {
 		return 0.5f * m_size.magnitude();
@@ -126,6 +132,8 @@ public:
 	void accelerate(const float &delta_) {
 		set_speed(m_speed + delta_);
 	}
+
+	bool is_gone() { return gone; }
 
 protected:
 	void render(const String &texture, const Color &filter = Color()) const {

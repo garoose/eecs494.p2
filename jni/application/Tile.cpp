@@ -23,15 +23,15 @@ void Tile::render(float x, float y) const
 
 	if (flip) {
 		p0 = Vertex2f_Texture(Point2f(x, y), Point2f(1.0f, 0.0f));
-		p1 = Vertex2f_Texture(Point2f(x, y + tile_size), Point2f(0.0f, 0.0f));
-		p2 = Vertex2f_Texture(Point2f(x + tile_size, y + tile_size), Point2f(0.0f, 1.0f));
-		p3 = Vertex2f_Texture(Point2f(x + tile_size, y), Point2f(1.0f, 1.0f));
+		p1 = Vertex2f_Texture(Point2f(x, y + tile_size.y), Point2f(0.0f, 0.0f));
+		p2 = Vertex2f_Texture(Point2f(x + tile_size.x, y + tile_size.y), Point2f(0.0f, 1.0f));
+		p3 = Vertex2f_Texture(Point2f(x + tile_size.x, y), Point2f(1.0f, 1.0f));
 	}
 	else {
 		p0 = Vertex2f_Texture(Point2f(x, y), Point2f(0.0f, 0.0f));
-		p1 = Vertex2f_Texture(Point2f(x, y + tile_size), Point2f(0.0f, 1.0f));
-		p2 = Vertex2f_Texture(Point2f(x + tile_size, y + tile_size), Point2f(1.0f, 1.0f));
-		p3 = Vertex2f_Texture(Point2f(x + tile_size, y), Point2f(1.0f, 0.0f));
+		p1 = Vertex2f_Texture(Point2f(x, y + tile_size.y), Point2f(0.0f, 1.0f));
+		p2 = Vertex2f_Texture(Point2f(x + tile_size.x, y + tile_size.y), Point2f(1.0f, 1.0f));
+		p3 = Vertex2f_Texture(Point2f(x + tile_size.x, y), Point2f(1.0f, 0.0f));
 	}
 
 	Material material(texture.c_str());
@@ -61,28 +61,28 @@ void Mars_Rock_Tile::collide_with_buggy(Buggy *b) {
 	b->collect();
 }
 
-Tile *Tile::make_tile(int id_) {
+Tile *Tile::make_tile(int id_, const Point2f &pos_) {
 	switch (id_) {
 	case 6:
-		return new Tile(id_, "sky3");
+		return new Tile(id_, "sky3", pos_);
 	case 5:
-		return new Tile(id_, "sky2");
+		return new Tile(id_, "sky2", pos_);
 	case 0:
-		return new Tile(id_, "sky");
+		return new Tile(id_, "sky", pos_);
 	case 1:
-		return new Ground_Tile(id_, "ground");
+		return new Ground_Tile(id_, "ground", pos_);
 	case 2:
-		return new Ground_Half_Tile(id_, "ground_half");
+		return new Ground_Half_Tile(id_, "ground_half", pos_);
 	case 3:
-		return new Slope_Bottom_Tile(id_, "slope_bottom");
+		return new Slope_Bottom_Tile(id_, "slope_bottom", pos_);
 	case 4:
-		return new Slope_Top_Tile(id_, "slope_top");
+		return new Slope_Top_Tile(id_, "slope_top", pos_);
 	case 7:
-		return new Mars_Rock_Tile(id_, "mars_rock");
+		return new Mars_Rock_Tile(id_, "mars_rock", pos_);
 	case 8:
-		return new Slope_Bottom_Tile(id_, "slope_bottom", true);
+		return new Slope_Bottom_Tile(id_, "slope_bottom", pos_, true);
 	case 9:
-		return new Slope_Top_Tile(id_, "slope_top", true);
+		return new Slope_Top_Tile(id_, "slope_top", pos_, true);
 	default:
 		return nullptr;
 	}
