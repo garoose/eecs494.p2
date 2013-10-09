@@ -89,6 +89,9 @@ private:
 	  float distance = (m_buggy.get_position().x + m_buggy.get_size().x) - (top_left.x + game_resolution.x / 4);
 
 	  map_scroll_speed = distance;
+
+	  if (distance < 0)
+		  map_scroll_speed *= 6;
   }
 
   void perform_logic() {

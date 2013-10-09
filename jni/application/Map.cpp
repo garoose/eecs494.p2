@@ -33,6 +33,30 @@ Map::~Map() {
 	}
 }
 
+void Map::checkpoint() {
+	for (unsigned int x = 0; x < map[0].size(); x++) {
+		for (unsigned int y = 0; y < map.size(); y++) {
+			get(x, y)->checkpoint();
+		}
+	}
+
+	for each (Game_Object *o in list) {
+		o->checkpoint();
+	}
+}
+
+void Map::reset() {
+	for (unsigned int x = 0; x < map[0].size(); x++) {
+		for (unsigned int y = 0; y < map.size(); y++) {
+			get(x, y)->reset();
+		}
+	}
+
+	for each (Game_Object *o in list) {
+		o->reset();
+	}
+}
+
 Tile *Map::get(int x, int y) const {
 	return map[y][x];
 }
@@ -111,18 +135,23 @@ bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
 		}
 	}
 
+	for each (Game_Object *o in list) {
+		if (!o->is_gone())
+			c->check_collision(c->get_position() + delta_, c->get_theta(), o);
+	}
+
 	return ret;
 }
 
 void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) {
-	for (float x = (top_left.x * tile_size.x); x < (top_left.x + game_resolution.x) * tile_size.x; x += tile_size.x) {
-		for (float y = (top_left.y * tile_size.y); y < (top_left.y + game_resolution.y) * tile_size.y; y += tile_size.y) {
+	for (float x = top_left.x; x < (top_left.x + game_resolution.x + tile_size.x); x += tile_size.x) {
+		for (float y = top_left.y; y < (top_left.y + game_resolution.y + tile_size.y); y += tile_size.y) {
 			unsigned int tx = int(floor((x) / tile_size.x));
 			unsigned int ty = int(floor((y) / tile_size.y));
 
 			if ((map.size() > ty) && (map[0].size() > tx)) {
-				get(tx, ty)->render(x, y);
-				get(tx, ty)->Collidable::render(Point2f(x, y), 0.0f, nullptr);
+				get(tx, ty)->render();
+				get(tx, ty)->Collidable::render(nullptr);
 			}
 		}
 	}

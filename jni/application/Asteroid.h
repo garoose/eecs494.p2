@@ -29,8 +29,7 @@ public:
 		}
 
 	void Asteroid::render() const override {
-		if (!gone)
-			Game_Object::render(texture.c_str());
+		Game_Object::render(texture.c_str());
 	}
 	
 	void Asteroid::render_collisions(Map *m) {
@@ -42,8 +41,6 @@ public:
 		if (!gone) {
 			c->collide_with_asteroid(this);
 		}
-
-		explode();
 	}
 
 	void Asteroid::explode() {
@@ -54,24 +51,31 @@ public:
 	void Asteroid::collide_with_buggy(Buggy *b);
 
 	void Asteroid::step(const float &time_step, Map *m) {
-		if (gone)
-			return;
-
 		if (remove.seconds() == 0)
 			move_forward(time_step * get_speed(), m);
 
 		if (m->check_collision(this)) {
-			
+			explode();
 		}
 
-		if (remove.seconds() >= 1.0f)
+		if (remove.seconds() >= 1.0f) {
 			gone = true;
+			remove.stop();
+			remove.reset();
+		}
 	}
 
-	void Asteroid::reset() {
+	bool check_collision(const Point2f &p) {
+		if (remove.seconds() == 0)
+			return Collidable::check_collision(p);
+
+		return false;
+	}
+
+	void Asteroid::reset() override {
 		gone = false;
-		remove.reset();
 		Game_Object::reset();
+		texture = "asteroid";
 	}
 };
 

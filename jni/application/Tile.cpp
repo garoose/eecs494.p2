@@ -15,10 +15,12 @@ using std::map;
 using std::vector;
 using std::string;
 
-void Tile::render(float x, float y) const
+void Tile::render() const
 {
 	Video &vr = get_Video();
 
+	float x = get_position().x;
+	float y = get_position().y;
 	Vertex2f_Texture p0, p1, p2, p3;
 
 	if (flip) {

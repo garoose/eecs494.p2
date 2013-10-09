@@ -20,6 +20,7 @@ private:
 	float m_acceleration;
 	Point2f reset_pos;
 	float reset_theta;
+	float reset_speed;
 
 protected:
 	bool gone;
@@ -44,6 +45,7 @@ public:
 		forward(cos(theta_), -sin(theta_)),
 		reset_pos(position_),
 		reset_theta(theta_),
+		reset_speed(speed_),
 		gone(false)
 	{
 	}
@@ -53,9 +55,9 @@ public:
 
 	virtual void render() const = 0; // pure virtual function call
 
-	virtual void render_collisions(Map *m) {}
+	virtual void render_collisions(Map *) {}
 
-	virtual bool can_move(const Vector2f &delta_, Map *m) {
+	virtual bool can_move(const Vector2f &delta_, Map *) {
 		if ((m_position.x + delta_.x) < 0)
 			return false;
 
@@ -75,14 +77,15 @@ public:
 	float get_speed() { return m_speed; }
 	float get_acceleration() { return m_acceleration; }
 
-	void checkpoint(const Point2f &pos_, const float &theta_) {
-		reset_pos = pos_;
-		reset_theta = theta_;
+	virtual void checkpoint() {
+		reset_pos = get_position();
 	}
 
-	void reset() {
+	virtual void reset() {
 		m_theta = reset_theta;
+		forward = Vector2f(cos(m_theta), -sin(m_theta));
 		m_position = reset_pos;
+		m_speed = reset_speed;
 	}
 
 	void turn_left(const float &theta_, Map *m) {
@@ -91,7 +94,7 @@ public:
 		m_theta += theta_;
 
 		while (!can_move(Vector2f(0.0f, 0.0f), m)) {
-			m_theta += theta_ < 0 ? 0.0001f : -0.0001f;
+			m_theta += theta_ < 0 ? 0.001f : -0.001f;
 
 			if (m_theta <= start)
 				break;

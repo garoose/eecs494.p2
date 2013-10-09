@@ -34,7 +34,7 @@ public:
 
 	static Tile *Tile::make_tile(int id_, const Point2f &pos_);
 
-	void Tile::render(float x, float y) const;
+	void Tile::render() const;
 
 	const Point2f &Tile::get_position() const override { return position; }
 	const float &get_theta() const override { return theta; }
@@ -47,10 +47,6 @@ public:
 		if (!gone)
 			return Collidable::check_collision(pos_);
 		return false;
-	}
-
-	void Tile::render(Point2f p) const {
-		render(p.x, p.y); 
 	}
 
 	virtual void checkpoint() {}

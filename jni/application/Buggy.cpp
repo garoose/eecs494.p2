@@ -4,6 +4,7 @@
 
 #include "Buggy.h"
 #include "Game_Object.h"
+#include "Asteroid.h"
 #include "Score.h"
 #include "Map.h"
 #include "Tile.h"
@@ -17,8 +18,9 @@ bool Tire::check_collision(const Vector2f &delta, Collidable *c) {
 	return Collidable::check_collision(get_position() + delta, get_theta(), c);
 }
 
-void Tire::collide(Collidable *C) {
+void Tire::collide(Collidable *c) {
 	test = "Tire Collide";
+	c->collide_with_tire(this);
 }
 
 void Tire::collide_with_rock(Mars_Rock_Tile *r) {
@@ -56,9 +58,8 @@ void Buggy::collide(Collidable *c) {
 }
 
 void Buggy::explode() {
-	m_score->inc(-10);
 	play_sound("explode");
-	Game_Object::reset();
+	explosion.start();
 }
 
 void Buggy::collide_with_rock(Mars_Rock_Tile *r) {
@@ -68,6 +69,11 @@ void Buggy::collide_with_rock(Mars_Rock_Tile *r) {
 }
 
 void Buggy::collide_with_ground(Ground_Tile *t) {
+	explode();
+}
+
+void Buggy::collide_with_asteroid(Asteroid *a) {
+	a->explode();
 	explode();
 }
 
@@ -85,6 +91,16 @@ bool Buggy::can_move(const Vector2f &delta_, Map *m) {
 }
 
 void Buggy::step(const float &time_step, Map *m) {
+	if (explosion.seconds() > 1.0f) {
+		Game_Object::reset();
+		explosion.stop();
+		explosion.reset();
+		m->reset();
+		m_score->reset();
+	}
+	if (explosion.seconds())
+		return;
+
 	bool leftcdown = m->check_collision(&left_tire, Vector2f(0.0f, time_step * gravity));
 	bool rightcdown = m->check_collision(&right_tire, Vector2f(0.0f, time_step * gravity));
 	bool leftcright = m->check_collision(&left_tire, Vector2f(time_step * get_speed(), 0.0f));
@@ -148,7 +164,10 @@ void Buggy::step(const float &time_step, Map *m) {
 }
 
 void Buggy::render() const {
-	Game_Object::render("buggy");
+	Game_Object::render(texture.c_str());
+
+	if (explosion.seconds())
+		Game_Object::render("buggy_explode");
 
 	left_tire.render();
 	right_tire.render();

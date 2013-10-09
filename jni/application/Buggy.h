@@ -60,6 +60,8 @@ private:
 	float tire_size;
 	Tire left_tire;
 	Tire right_tire;
+	std::string texture;
+	Chronometer<Time> explosion;
 	Score *m_score;
 
 public:
@@ -73,10 +75,11 @@ public:
 		Score *score_)
 		: Game_Object(position_, size_,
 		std::vector<Point2f> { Point2f(30.0f, 25.0f), Point2f(size_.x - 100.0f, 25.0f),
-			Point2f(size_.x - 10.0f, size_.y - 10.0f), Point2f(30.0f, size_.y - 10.0f) },
+			Point2f(size_.x - 20.0f, size_.y - 10.0f), Point2f(30.0f, size_.y - 10.0f) },
 		theta_, speed_, min_speed_, max_speed_, acceleration_),
 		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f), this, m_score),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f), this, m_score),
+		texture("buggy"),
 		m_score(score_)
 	{
 	}
@@ -87,6 +90,7 @@ public:
 	void Buggy::explode();
 	void Buggy::collide_with_rock(Mars_Rock_Tile *r) override;
 	void Buggy::collide_with_ground(Ground_Tile *t) override;
+	void Buggy::collide_with_asteroid(Asteroid *a) override;
 
 	void Buggy::collect();
 

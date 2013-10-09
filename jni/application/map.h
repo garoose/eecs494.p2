@@ -34,6 +34,9 @@ public:
 
 	void Map::load(std::string filename);
 
+	void Map::checkpoint();
+	void Map::reset();
+
 	bool Map::check_collision(Collidable *c, const Vector2f &delta_ = Vector2f(0.0f,0.0f));
 
 	void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b);

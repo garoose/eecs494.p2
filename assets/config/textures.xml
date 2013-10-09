@@ -41,6 +41,10 @@ The following things are unsupported:
     <filepath>textures/buggy_frame.png</filepath>
     <tile>0</tile>
   </buggy>
+  <buggy_explode>
+    <filepath>textures/buggy_explode.png</filepath>
+    <tile>0</tile>
+  </buggy_explode>
   <tire>
     <filepath>textures/buggy_tire.png</filepath>
     <tile>0</tile>

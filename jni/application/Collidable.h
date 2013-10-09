@@ -9,6 +9,7 @@ extern std::string test;
 using namespace Zeni;
 
 class Buggy;
+class Tire;
 class Ground_Tile;
 class Mars_Rock_Tile;
 class Asteroid;
@@ -50,14 +51,15 @@ public:
 	//Return true if this object is colliding with point collide_p
 	virtual bool Collidable::check_collision(const Point2f &collide_p);
 
-	virtual void Collidable::collide(Collidable *c) {
+	virtual void Collidable::collide(Collidable *) {
 		test = "default Collide";
 	}
 
-	virtual void Collidable::collide_with_ground(Ground_Tile *g) {}
-	virtual void Collidable::collide_with_rock(Mars_Rock_Tile *r) {}
-	virtual void Collidable::collide_with_buggy(Buggy *b) {}
-	virtual void Collidable::collide_with_asteroid(Asteroid *a) {}
+	virtual void Collidable::collide_with_ground(Ground_Tile *) {}
+	virtual void Collidable::collide_with_rock(Mars_Rock_Tile *) {}
+	virtual void Collidable::collide_with_buggy(Buggy *) {}
+	virtual void Collidable::collide_with_tire(Tire *) {}
+	virtual void Collidable::collide_with_asteroid(Asteroid *) {}
 
 private:
 	float Collidable::liney(const Point2f &p0, const Point2f &p1, const float &x) const {
