@@ -63,6 +63,11 @@ void Mars_Rock_Tile::collide_with_buggy(Buggy *b) {
 	b->collect();
 }
 
+void Mars_Rock_Tile::collide_with_tire(Tire *t) {
+	collect();
+	t->collect();
+}
+
 Tile *Tile::make_tile(int id_, const Point2f &pos_) {
 	switch (id_) {
 	case 6:

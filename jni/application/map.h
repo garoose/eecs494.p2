@@ -34,7 +34,7 @@ public:
 
 	void Map::load(std::string filename);
 
-	void Map::checkpoint();
+	void Map::checkpoint(const Point2f &pos);
 	void Map::reset();
 
 	bool Map::check_collision(Collidable *c, const Vector2f &delta_ = Vector2f(0.0f,0.0f));

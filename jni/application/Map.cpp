@@ -14,6 +14,7 @@
 #include "Tile.h"
 
 #include "Asteroid.h"
+#include "Checkpoint.h"
 
 using std::vector;
 using std::string;
@@ -33,15 +34,16 @@ Map::~Map() {
 	}
 }
 
-void Map::checkpoint() {
-	for (unsigned int x = 0; x < map[0].size(); x++) {
+void Map::checkpoint(const Point2f &pos) {
+	for (unsigned int x = 0; x < pos.x && x < map[0].size(); x++) {
 		for (unsigned int y = 0; y < map.size(); y++) {
 			get(x, y)->checkpoint();
 		}
 	}
 
 	for each (Game_Object *o in list) {
-		o->checkpoint();
+		if (o->get_position().x <= pos.x)
+			o->checkpoint();
 	}
 }
 
@@ -109,6 +111,9 @@ void Map::load(string filename) {
 		if (words[0] == "asteroid") {
 			list.push_back(new Asteroid(Point2f(stof(words[1]), stof(words[2])), 
 				Vector2f(stof(words[3]), stof(words[4])), Global::pi * stof(words[5]), stof(words[6])));
+		}
+		else if (words[0] == "checkpoint") {
+			list.push_back(new Checkpoint(Point2f(stof(words[1]), 0.0f), this));
 		}
 
 	}

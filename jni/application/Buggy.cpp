@@ -27,6 +27,10 @@ void Tire::collide_with_rock(Mars_Rock_Tile *r) {
 	m_buggy->collide_with_rock(r);
 }
 
+void Tire::collect() {
+	m_buggy->collect();
+}
+
 void Tire::attach(const Point2f &center, const float &forward) {
 	position = Point2f(center.x + attach_distance * cos(forward - attach_theta),
 		center.y + attach_distance * -sin(forward - attach_theta));
@@ -47,6 +51,12 @@ void Tire::render() const {
 
 	vr.render(quad);
 }
+
+void Tire::checkpoint() {
+	m_buggy->checkpoint();
+}
+
+
 
 bool Buggy::check_collision(const Vector2f &delta, Collidable *c) {
 	return Collidable::check_collision(get_position() + delta, get_theta(), c);
@@ -79,6 +89,10 @@ void Buggy::collide_with_asteroid(Asteroid *a) {
 
 void Buggy::collect() {
 	m_score->inc(100);
+}
+
+void Buggy::checkpoint() {
+	Game_Object::checkpoint();
 }
 
 bool Buggy::can_move(const Vector2f &delta_, Map *m) {

@@ -13,6 +13,7 @@ class Tire;
 class Ground_Tile;
 class Mars_Rock_Tile;
 class Asteroid;
+class Checkpoint;
 
 class Collidable {
 private:
@@ -37,6 +38,10 @@ public:
 	virtual const float &get_theta() const = 0;
 	virtual const Vector2f &get_size() const = 0;
 
+	Point2f get_center(const Point2f &p) {
+		return Point2f(p.x + (get_size().x * 0.5f), p.y + (get_size().y * 0.5f));
+	}
+
 	//Render lines to represent collision box
 	void Collidable::render(const Point2f &pos, const float &theta, Collidable *c);
 	void Collidable::render(Collidable *c);
@@ -60,6 +65,7 @@ public:
 	virtual void Collidable::collide_with_buggy(Buggy *) {}
 	virtual void Collidable::collide_with_tire(Tire *) {}
 	virtual void Collidable::collide_with_asteroid(Asteroid *) {}
+	virtual void Collidable::collide_with_checkpoint(Checkpoint *) {}
 
 private:
 	float Collidable::liney(const Point2f &p0, const Point2f &p1, const float &x) const {
@@ -68,12 +74,13 @@ private:
 
 	//Adjusts a collision box corner for position and theta
 	Point2f Collidable::adjust_point(const Point2f &p, const Point2f &pos, const float &theta) {
-		Point2f ret = p;
+		Point2f p1 = p + pos;
+		Point2f center = get_center(p1);
 
-		//ret.x = p.x * cos(theta);
-		//ret.y = p.y * -sin(theta);
+		Point2f ret(cos(theta) * (p1.x - center.x) - sin(theta) * (p1.y - center.y) + center.x,
+					sin(theta) * (p1.x - center.x) + cos(theta) * (p1.y - center.y) + center.y);
 
-		return ret + pos;
+		return ret;
 	}
 
 	Point2f Collidable::adjust_point(const Point2f &p) {

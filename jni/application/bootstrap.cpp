@@ -37,7 +37,7 @@ public:
 	  m_max_time_step(1.0f / 20.0f), // make the largest physics step 1/20 of a second
 	  m_max_time_steps(10.0f), // allow no more than 10 physics steps per frame
 	  //      position,               size,                     theta,  speed,   min_speed, max_speed, acceleration
-	  m_buggy(Point2f(50.0f, 250.0f), Vector2f(256.0f, 128.0f), 0,      100.0f,  20.0f,     300.0f,    90.0f, &m_score)
+	  m_buggy(Point2f(50.0f, 250.0f), Vector2f(256.0f, 128.0f), 0,      100.0f,  20.0f,     300.0f,    90.0f,      &m_score)
   {
 	  // If our game has no real time component in real life, allow the user to pause the game.
 	  // This would be a BAD idea in a networked multiplayer mode for a game.

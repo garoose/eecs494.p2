@@ -15,6 +15,7 @@ using std::vector;
 class Asteroid : public Game_Object {
 	std::string texture;
 	Chronometer<Time> remove;
+	bool ckpt;
 
 public:
 	Asteroid::Asteroid(const Point2f &position_,
@@ -24,7 +25,8 @@ public:
 		: Game_Object(position_, size_,
 		vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_.x, 0.0f), Point2f(size_.x, size_.y), Point2f(0.0f, size_.y) },
 		theta_, speed_),
-		texture("asteroid")
+		texture("asteroid"),
+		ckpt(false)
 		{	
 		}
 
@@ -72,8 +74,23 @@ public:
 		return false;
 	}
 
+	void Asteroid::checkpoint() {
+		ckpt = true;
+		remove.stop();
+		if (remove.seconds())
+			gone = true;
+		remove.reset();
+
+		Game_Object::checkpoint();
+	}
+
 	void Asteroid::reset() override {
+		if (ckpt)
+			return;
+
 		gone = false;
+		remove.stop();
+		remove.reset();
 		Game_Object::reset();
 		texture = "asteroid";
 	}

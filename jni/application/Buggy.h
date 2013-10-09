@@ -41,6 +41,8 @@ public:
 
 	void Tire::collide_with_rock(Mars_Rock_Tile *r) override;
 
+	void Tire::collect();
+
 	void Tire::attach(const Point2f &center, const float &forward);
 
 	void Tire::render() const;
@@ -52,7 +54,8 @@ public:
 	const Point2f &get_position() const override { return position; }
 	const float &get_theta() const override { return theta; }
 	const Vector2f &get_size() const { return size; }
-	Point2f bottom() const { return Point2f(position.x, size.y + position.y); }
+
+	void Tire::checkpoint();
 };
 
 class Buggy : public Game_Object {
@@ -74,8 +77,8 @@ public:
 		const float &acceleration_,
 		Score *score_)
 		: Game_Object(position_, size_,
-		std::vector<Point2f> { Point2f(30.0f, 25.0f), Point2f(size_.x - 100.0f, 25.0f),
-			Point2f(size_.x - 20.0f, size_.y - 10.0f), Point2f(30.0f, size_.y - 10.0f) },
+		std::vector<Point2f> { Point2f(30.0f, 35.0f), Point2f(size_.x - 100.0f, 35.0f),
+			Point2f(size_.x - 20.0f, size_.y - 20.0f), Point2f(30.0f, size_.y - 20.0f) },
 		theta_, speed_, min_speed_, max_speed_, acceleration_),
 		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f), this, m_score),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f), this, m_score),
@@ -92,7 +95,10 @@ public:
 	void Buggy::collide_with_ground(Ground_Tile *t) override;
 	void Buggy::collide_with_asteroid(Asteroid *a) override;
 
+	//collect a mars rock
 	void Buggy::collect();
+
+	void Buggy::checkpoint() override;
 
 	bool Buggy::can_move(const Vector2f &delta_, Map *m);
 
@@ -134,11 +140,10 @@ private:
 	} m_jump; //end struct Jump
 
 	void Buggy::attach_wheels() {
-		Point2f center(Game_Object::get_position().x + (get_size().x * 0.5f),
-			Game_Object::get_position().y + (get_size().y * 0.5f));
+		Point2f center(get_position().x + (get_size().x * 0.5f), get_position().y + (get_size().y * 0.5f));
 
-		left_tire.attach(center, Game_Object::get_theta());
-		right_tire.attach(center, Game_Object::get_theta());
+		left_tire.attach(center, get_theta());
+		right_tire.attach(center, get_theta());
 	}
 
 };

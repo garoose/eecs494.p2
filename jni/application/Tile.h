@@ -147,17 +147,16 @@ public:
 	}
 
 	void Mars_Rock_Tile::collide_with_buggy(Buggy *b);
+	void Mars_Rock_Tile::collide_with_tire(Tire *t);
 
 	void checkpoint() override {
 		ckpt = true;
 	}
 
 	void reset() override {
-		if (!ckpt)
+		if (!ckpt) {
 			change_texture(texture);
+			gone = false;
+		}
 	}
-
-	//bool Mars_Rock_Tile::check_collision(const Point2f &pos) override {
-	//	return true;
-	//}
 };
