@@ -17,6 +17,9 @@ class Tile : public Collidable {
 	float theta;
 	bool flip;
 
+protected:
+	bool gone;
+
 public:
 	Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false, std::vector<Point2f> collide_ = {}) 
 		: Collidable(collide_),
@@ -24,7 +27,8 @@ public:
 		texture(texture_),
 		position(pos_),
 		theta(0.0f),
-		flip(flip_)
+		flip(flip_),
+		gone(false)
 	{
 	}
 
@@ -38,6 +42,12 @@ public:
 
 	int Tile::get_id() const { return id; }
 	std::string Tile::get_texture() const { return texture; }
+
+	bool Tile::check_collision(const Point2f &pos_) override {
+		if (!gone)
+			return Collidable::check_collision(pos_);
+		return false;
+	}
 
 	void Tile::render(Point2f p) const {
 		render(p.x, p.y); 
@@ -55,16 +65,14 @@ protected:
 class Ground_Tile : public Tile {
 	std::string texture;
 	bool ckpt;
-	bool gone;
 
 public:
 	Ground_Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false,
 		std::vector<Point2f> collide_ = { Point2f(0.0f, 0.0f), Point2f(tile_size.x, 0.0f),
-														Point2f(tile_size.x, tile_size.y), Point2f(0.0f, tile_size.y) })
+										Point2f(tile_size.x, tile_size.y), Point2f(0.0f, tile_size.y) })
 		: Tile(id_, texture_, pos_, flip_, collide_ ),
 		texture(texture_),
-		ckpt(false),
-		gone(false)
+		ckpt(false)
 	{
 	}
 
@@ -73,17 +81,15 @@ public:
 	void Ground_Tile::collide_with_asteroid(Asteroid *a) override;
 	void Ground_Tile::collide_with_buggy(Buggy *b) override;
 
-	//bool Ground_Tile::check_collision(const Point2f &p) override {
-		//return true;
-	//}
-
 	void checkpoint() override {
 		ckpt = true;
 	}
 
 	void reset() override {
-		if (!ckpt)
+		if (!ckpt) {
 			change_texture(texture);
+			gone = false;
+		}
 	}
 
 };
@@ -135,11 +141,13 @@ public:
 
 	void Mars_Rock_Tile::collide(Collidable *c) override {
 		test = "Rock Collide";
+		collect();
 		c->collide_with_rock(this);
 	}
 
 	void Mars_Rock_Tile::collect() {
 		change_texture("sky");
+		gone = true;
 	}
 
 	void Mars_Rock_Tile::collide_with_buggy(Buggy *b);

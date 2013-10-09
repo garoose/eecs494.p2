@@ -45,6 +45,8 @@ public:
 	virtual bool Collidable::check_collision(const Point2f &pos, const float &theta, Collidable *c);
 	virtual bool Collidable::check_collision(Collidable *c); //use get_position() and get_theta()
 
+	bool Collidable::check_collision(const Point2f &p1, const Point2f &p2);
+
 	//Return true if this object is colliding with point collide_p
 	virtual bool Collidable::check_collision(const Point2f &collide_p);
 

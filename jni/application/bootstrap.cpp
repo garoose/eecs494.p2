@@ -120,12 +120,6 @@ private:
 	  map1.step_all(time_step, game_resolution, top_left);
 	  top_left.x += map_scroll_speed * time_step;
 	  time_step = 0.0f;
-
-	  //FIXME: Temporary solution: end game when buggy frame collides
-	  /*if (m_buggy.collide(map1)) {
-		  play_sound("explode");
-		  m_buggy.reset_position();
-	  }*/
   }
 
   void Play_State::render_bg()

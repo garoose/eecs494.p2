@@ -86,6 +86,7 @@ public:
 	void Buggy::collide(Collidable *c) override;
 	void Buggy::explode();
 	void Buggy::collide_with_rock(Mars_Rock_Tile *r) override;
+	void Buggy::collide_with_ground(Ground_Tile *t) override;
 
 	void Buggy::collect();
 

@@ -20,7 +20,7 @@ void Collidable::render(const Point2f &pos, const float &theta, Collidable *c) {
 		Point2f p1 = adjust_point(cbox[j], pos, theta);
 
 		Color col = get_Colors()["yellow"];
-		if (c && check_collision(pos, theta, c))
+		if (c && c->check_collision(this))
 			col = get_Colors()["red"];
 
 		Line_Segment<Vertex2f_Color> l(Vertex2f_Color(p0, col), Vertex2f_Color(p1, col));
@@ -32,16 +32,32 @@ void Collidable::render(Collidable *c) {
 	render(get_position(), get_theta(), c);
 }
 
+float determinant(Vector2f vec1, Vector2f vec2){
+	return vec1.x * vec2.y - vec1.y * vec2.x;
+}
+
+//one edge is a-b, the other is c-d
+bool edgeIntersection(const Vector2f &a, const Vector2f &b, const Vector2f &c, const Vector2f &d){
+	float det = determinant(b - a, c - d);
+	float t = determinant(c - a, c - d) / det;
+	float u = determinant(b - a, c - a) / det;
+	if ((t < 0) || (u < 0) || (t > 1) || (u > 1)) {
+		return false;
+		//return NO_INTERSECTION;
+	}
+	else {
+		return true;
+		//return a * (1 - t) + t * b;
+	}
+}
+
 //TODO: rotate hit boxes with object rotation
 //Return true if this object set at Point pos facing theta collides with c
 bool Collidable::check_collision(const Point2f &pos, const float &theta, Collidable *c) {
+	bool ret = false;
+
 	if (this == c)
 		return false;
-
-	if (cbox.size() == 1 && c->check_collision(adjust_point(cbox[0], pos, theta))) {
-		collide(c);
-		return true;
-	}
 
 	//Go through all the points in the collision shape
 	unsigned int i, j = cbox.size() - 1;
@@ -49,6 +65,8 @@ bool Collidable::check_collision(const Point2f &pos, const float &theta, Collida
 	for (i = 0; i < cbox.size(); j = i++) {
 		Point2f p0 = adjust_point(cbox[i], pos, theta);
 		Point2f p1 = adjust_point(cbox[j], pos, theta);
+
+		//c->check_collision(p0, p1);
 
 		//check for collisions along each line segment
 		if (p0.x == p1.x) {
@@ -60,8 +78,7 @@ bool Collidable::check_collision(const Point2f &pos, const float &theta, Collida
 					return true;
 				}
 			}
-		}
-		else {
+		} else {
 			Point2f start = p0.x > p1.x ? p1 : p0;
 			Point2f end = p0.x > p1.x ? p0 : p1;
 			for (Point2f pp = start; pp.x <= end.x && pp.y <= end.y; pp.x += 1, pp.y = liney(p0, p1, pp.x)) {
@@ -73,11 +90,22 @@ bool Collidable::check_collision(const Point2f &pos, const float &theta, Collida
 		}
 	} // end for loop
 
-	return false;
+	return ret;
 }
 
 bool Collidable::check_collision(Collidable *c) {
 	return check_collision(get_position(), get_theta(), c);
+}
+
+bool Collidable::check_collision(const Point2f &p1, const Point2f &p2) {
+	int i, j, nvert = cbox.size();
+
+	for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+		if (edgeIntersection(p1, p2, adjust_point(cbox[i]), adjust_point(cbox[j])))
+			return true;
+	}
+
+	return false;
 }
 
 //Return true if this object is colliding with point collide_p
@@ -104,10 +132,8 @@ int Collidable::pointInPolygonWinding(const Point2f &P)
 {
 	int    wn = 0;    // the  winding number counter
 
-	vector<Point2f> &V(cbox);
-
 	// loop through all edges of the polygon
-	for (int i = 0; i < cbox.size(); i++) {   // edge from V[i] to  V[i+1]
+	for (unsigned int i = 0; i < cbox.size(); i++) {   // edge from V[i] to  V[i+1]
 		Point2f pi(adjust_point(cbox[i]));
 		Point2f pj(adjust_point(cbox[i + 1]));
 
@@ -142,27 +168,3 @@ bool Collidable::pointInPolygon(const Point2f &point) {
 
 	return c;
 }
-
-/*bool Collidable::pointInPolygon(const Point2f &pos) {
-if (cbox.size() == 1) {
-Point2f pc = adjust_point(cbox[0]);
-return (pos.x == pc.x && pos.y == pc.y);
-}
-
-unsigned int  i, j = cbox.size() - 1;
-bool oddNodes = false;
-
-for (i = 0; i < cbox.size(); i++) {
-Point2f pi(adjust_point(cbox[i]));
-Point2f pj(adjust_point(cbox[j]));
-
-if ((pi.y < pos.y && pj.y >= pos.y
-|| pj.y < pos.y && pi.y >= pos.y)
-&&  (pi.x <= pos.x || pj.x <= pos.x)) {
-oddNodes ^= (pi.x + (pos.y - pi.y) / (pj.y - pi.y)*(pj.x - pi.x) < pos.x);
-}
-j = i;
-}
-
-return oddNodes;
-}*/

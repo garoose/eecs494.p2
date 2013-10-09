@@ -43,9 +43,15 @@ public:
 			c->collide_with_asteroid(this);
 		}
 
+		explode();
+	}
+
+	void Asteroid::explode() {
 		remove.start();
 		texture = "asteroid_broken";
 	}
+
+	void Asteroid::collide_with_buggy(Buggy *b);
 
 	void Asteroid::step(const float &time_step, Map *m) {
 		if (gone)
@@ -65,7 +71,7 @@ public:
 	void Asteroid::reset() {
 		gone = false;
 		remove.reset();
-		reset_position();
+		Game_Object::reset();
 	}
 };
 

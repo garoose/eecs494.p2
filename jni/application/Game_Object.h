@@ -19,6 +19,7 @@ private:
 	float m_max_speed;
 	float m_acceleration;
 	Point2f reset_pos;
+	float reset_theta;
 
 protected:
 	bool gone;
@@ -42,6 +43,7 @@ public:
 		m_acceleration(acceleration_),
 		forward(cos(theta_), -sin(theta_)),
 		reset_pos(position_),
+		reset_theta(theta_),
 		gone(false)
 	{
 	}
@@ -73,7 +75,13 @@ public:
 	float get_speed() { return m_speed; }
 	float get_acceleration() { return m_acceleration; }
 
-	void reset_position() {
+	void checkpoint(const Point2f &pos_, const float &theta_) {
+		reset_pos = pos_;
+		reset_theta = theta_;
+	}
+
+	void reset() {
+		m_theta = reset_theta;
 		m_position = reset_pos;
 	}
 

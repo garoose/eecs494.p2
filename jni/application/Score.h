@@ -22,7 +22,7 @@ public:
 
 		fr.render_text(
 			itoa(score),
-			Point2f(top_left.x + 50.0f, top_left.y + 60.0f - 0.5f * fr.get_text_height()),
+			Point2f(top_left.x + 50.0f + fr.get_text_width(itoa(score)), top_left.y + 60.0f - 0.5f * fr.get_text_height()),
 			get_Colors()["title_text"],
 			ZENI_CENTER);
 	}

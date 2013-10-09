@@ -52,7 +52,7 @@ void Map::load(string filename) {
 
 	//get the number of rows
 	getline(file, line);
-	float rows = 0, num_rows = stoi(line);
+	float rows = 0.0f, num_rows = stof(line);
 
 	while (getline(file, line) && rows < num_rows) {
 		if (line[0] == '#')
@@ -96,23 +96,27 @@ bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
 	float cx = c->get_position().x + delta_.x;
 	float cy = c->get_position().y + delta_.y;
 
-	for (unsigned int x = cx; x < cx + c->get_size().x; x += tile_size.x) {
-		for (unsigned int y = cy; y < cy + c->get_size().y; y += tile_size.y) {
+	bool ret = false;
+
+	for (float x = cx - tile_size.x; x < cx + c->get_size().x + tile_size.x; x += tile_size.x) {
+		for (float y = cy - tile_size.y; y < cy + c->get_size().y + tile_size.y; y += tile_size.y) {
 			//Find the relevant tile to collide with
 			unsigned int tx = int(floor(x / tile_size.x));
 			unsigned int ty = int(floor(y / tile_size.y));
 
-			if ((map.size() > ty) && (map[0].size() > tx))
-				return c->check_collision(c->get_position() + delta_, c->get_theta(), get(tx, ty));
+			if ((map.size() > ty) && (map[0].size() > tx)) {
+				if (c->check_collision(c->get_position() + delta_, c->get_theta(), get(tx, ty)))
+					ret = true;
+			}
 		}
 	}
 
-	return false;
+	return ret;
 }
 
 void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) {
-	for (float x = 0; x < map[0].size() * tile_size.x; x += tile_size.x) {
-		for (float y = 0; y < map.size() * tile_size.y; y += tile_size.y) {
+	for (float x = (top_left.x * tile_size.x); x < (top_left.x + game_resolution.x) * tile_size.x; x += tile_size.x) {
+		for (float y = (top_left.y * tile_size.y); y < (top_left.y + game_resolution.y) * tile_size.y; y += tile_size.y) {
 			unsigned int tx = int(floor((x) / tile_size.x));
 			unsigned int ty = int(floor((y) / tile_size.y));
 

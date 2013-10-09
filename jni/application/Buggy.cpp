@@ -58,12 +58,17 @@ void Buggy::collide(Collidable *c) {
 void Buggy::explode() {
 	m_score->inc(-10);
 	play_sound("explode");
-	reset_position();
+	Game_Object::reset();
 }
 
 void Buggy::collide_with_rock(Mars_Rock_Tile *r) {
 	m_score->inc(100);
 	r->collect();
+	collect();
+}
+
+void Buggy::collide_with_ground(Ground_Tile *t) {
+	explode();
 }
 
 void Buggy::collect() {
@@ -110,11 +115,16 @@ void Buggy::step(const float &time_step, Map *m) {
 			turn_left(time_step * 2, m);
 		else if (!rightcdown)
 			turn_left(-time_step * 2, m);
+	}
 
-		//prevent tires from getting stuck
-		if (leftcright || rightcright)
-			move_down((-gravity + 10.0f) * time_step, m);
-
+	//prevent tires from getting stuck
+	if (leftcright) {
+		move_down((-gravity + 30.0f) * time_step, m);
+		turn_left(-time_step * 2, m);
+	}
+	else if (rightcright) {
+		move_down((-gravity + 30.0f) * time_step, m);
+		turn_left(time_step * 2, m);
 	}
 
 	//jump
