@@ -40,7 +40,7 @@ private:
 		fr.render_text(
 			"You win!!!\n\n"
 			"Final Score: " + ftoa(score) + "\n\n"
-			"Press escape to return to the main menu",
+			"Press escape to return\nto the main menu",
 			Point2f(400.0f, 100.0f - 0.5f * fr.get_text_height()),
 			get_Colors()["title_text"],
 			ZENI_CENTER);

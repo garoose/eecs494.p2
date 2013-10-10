@@ -1,7 +1,6 @@
 #pragma once
 
 #include <zenilib.h>
-#include <vector>
 
 #include "Game_Object.h"
 #include "Score.h"
@@ -27,12 +26,11 @@ class Tire : public Collidable {
 public:
 	Tire::Tire(const float &size_, const float &theta_, const float &distance_, Buggy *buggy_, Score *score_)
 		: size(size_, size_), attach_theta(theta_), attach_distance(distance_), position(0.0f, 0.0f),
-		Collidable(std::vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_, 0.0f), Point2f(size_, size_), Point2f(0.0f, size_) }),
 		theta(0.0f),
 		m_buggy(buggy_),
 		m_score(score_)
-		//Collidable(Vector2f(size, size))
 	{
+		collide_init_box(size);
 	}
 
 	bool Tire::check_collision(const Vector2f &delta, Collidable *c);
@@ -75,15 +73,16 @@ public:
 		const float &max_speed_,
 		const float &acceleration_,
 		Score *score_)
-		: Game_Object(position_, size_,
-		std::vector<Point2f> { Point2f(30.0f, 35.0f), Point2f(size_.x - 100.0f, 35.0f),
-			Point2f(size_.x - 20.0f, size_.y - 20.0f), Point2f(30.0f, size_.y - 20.0f) },
-		theta_, speed_, min_speed_, max_speed_, acceleration_),
+		: Game_Object(position_, size_,	theta_, speed_, min_speed_, max_speed_, acceleration_),
 		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f), this, m_score),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f), this, m_score),
 		texture("buggy"),
 		m_score(score_)
 	{
+		add_point(30.0f, 35.0f);
+		add_point(size_.x - 100.0f, 35.0f);
+		add_point(size_.x - 20.0f, size_.y - 20.0f);
+		add_point(30.0f, size_.y - 20.f);
 	}
 
 	const float &get_score() const { return m_score->get_score(); }

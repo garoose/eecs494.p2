@@ -17,9 +17,11 @@ private:
 public:
 
 	Endpoint::Endpoint(const Point2f &pos, Map *m)
-		: Game_Object(pos, endsize, std::vector<Point2f> { Point2f(), Point2f(endsize.x, 0.0f), Point2f(endsize.x, endsize.y), Point2f(0.0f, endsize.y) }),
+		: Game_Object(pos, endsize),
 		map(m)
-	{}
+	{
+		collide_init_box(endsize);
+	}
 
 	void Endpoint::render() const override {
 	}

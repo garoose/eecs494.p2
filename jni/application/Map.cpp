@@ -137,7 +137,7 @@ bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
 	bool ret = false;
 
 	for (float x = cx; x < cx + c->get_size().x; x += tile_size.x) {
-		for (float y = cy; y < cy + c->get_size().y; y += tile_size.y) {
+		for (float y = cy; y <= cy + c->get_size().y; y += tile_size.y) {
 			//Find the relevant tile to collide with
 			unsigned int tx = int(floor(x / tile_size.x));
 			unsigned int ty = int(floor((y + tile_size.y) / tile_size.y));

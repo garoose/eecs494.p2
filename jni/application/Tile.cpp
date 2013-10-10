@@ -44,11 +44,6 @@ void Tile::render() const
 	vr.render(quad);
 }
 
-void Ground_Tile::collide(Collidable *c) {
-	test = "Ground Collide";
-	c->collide_with_ground(this);
-}
-
 void Ground_Tile::collide_with_asteroid(Asteroid *a) {
 	change_texture("sky");
 	gone = true;

@@ -23,17 +23,28 @@ private:
 public:
 	Collidable() {}
 
-	Collidable(std::vector <Point2f> cbox_)
-		: cbox(cbox_)
+	Collidable(const Vector2f &size) 
 	{
+		collide_init_box(size);
 	}
 
-	Collidable(const Vector2f &size)
-		: cbox(std::vector <Point2f> { Point2f(0.0f, 0.0f), Point2f(size.x, 0.0f), 
-			Point2f(size.x, size.y), Point2f(0.0f, size.y) })
-	{
+protected:
+	void Collidable::add_point(float x = 0.0f, float y = 0.0f) {
+		cbox.push_back(Point2f(x,y));
 	}
 
+	void Collidable::collide_init_box(const Vector2f &size) {
+		add_point(0.0f, 0.0f);
+		add_point(size.x, 0.0f);
+		add_point(size.x, size.y);
+		add_point(0.0f, size.y);
+	}
+
+	void Collidable::collide_clear() {
+		cbox.clear();
+	}
+
+public:
 	//Need to define these in derived class
 	virtual const Point2f &get_position() const = 0;
 	virtual const float &get_theta() const = 0;

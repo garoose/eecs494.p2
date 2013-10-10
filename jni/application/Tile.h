@@ -1,7 +1,6 @@
 #pragma once
 
 #include <zenilib.h>
-#include <vector>
 #include <string>
 
 #include "Collidable.h"
@@ -21,9 +20,8 @@ protected:
 	bool gone;
 
 public:
-	Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false, std::vector<Point2f> collide_ = {}) 
-		: Collidable(collide_),
-		id(id_),
+	Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false) 
+		: id(id_),
 		texture(texture_),
 		position(pos_),
 		theta(0.0f),
@@ -39,6 +37,7 @@ public:
 	const Point2f &Tile::get_position() const override { return position; }
 	const float &get_theta() const override { return theta; }
 	const Vector2f &get_size() const override { return tile_size; }
+	const bool is_flipped() const { return flip; }
 
 	int Tile::get_id() const { return id; }
 	std::string Tile::get_texture() const { return texture; }
@@ -63,16 +62,18 @@ class Ground_Tile : public Tile {
 	bool ckpt;
 
 public:
-	Ground_Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false,
-		std::vector<Point2f> collide_ = { Point2f(0.0f, 0.0f), Point2f(tile_size.x, 0.0f),
-										Point2f(tile_size.x, tile_size.y), Point2f(0.0f, tile_size.y) })
-		: Tile(id_, texture_, pos_, flip_, collide_ ),
+	Ground_Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false)
+		: Tile(id_, texture_, pos_, flip_),
 		texture(texture_),
 		ckpt(false)
 	{
+		collide_init_box(tile_size);
 	}
 
-	void Ground_Tile::collide(Collidable *c) override;
+	void Ground_Tile::collide(Collidable *c) override {
+		test = "Ground Collide";
+		c->collide_with_ground(this);
+	}
 
 	void Ground_Tile::collide_with_asteroid(Asteroid *a) override;
 	void Ground_Tile::collide_with_buggy(Buggy *b) override;
@@ -93,10 +94,13 @@ public:
 class Ground_Half_Tile : public Ground_Tile {
 public:
 	Ground_Half_Tile(int id_, std::string texture_, const Point2f &pos_)
-		: Ground_Tile(id_, texture_, pos_, false,
-		std::vector<Point2f> { Point2f(0.0f, tile_size.y / 2), Point2f(tile_size.x, tile_size.y / 2),
-						  Point2f(tile_size.x, tile_size.y), Point2f(0.0f, tile_size.y) })
+		: Ground_Tile(id_, texture_, pos_, false)
 	{
+		collide_clear();
+		add_point(0.0f, tile_size.y / 2);
+		add_point(tile_size.x, tile_size.y / 2);
+		add_point(tile_size.x, tile_size.y);
+		add_point(0.0f, tile_size.y);
 	}
 
 };
@@ -104,9 +108,19 @@ public:
 class Slope_Bottom_Tile : public Ground_Tile {
 public:
 	Slope_Bottom_Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false)
-		: Ground_Tile(id_, texture_, pos_, flip_,
-		std::vector<Point2f> { Point2f(0.0f, tile_size.y), Point2f(tile_size.x, tile_size.y / 2), Point2f(tile_size.x, tile_size.y) })
+		: Ground_Tile(id_, texture_, pos_, flip_)
 	{
+		collide_clear();
+		if (flip_) {
+			add_point(0.0f, tile_size.y / 2);
+			add_point(tile_size.x, 0.0f);
+			add_point(0.0f, tile_size.y);
+		}
+		else {
+			add_point(0.0f, tile_size.y);
+			add_point(tile_size.x, tile_size.y / 2);
+			add_point(tile_size.x, tile_size.y);
+		}
 	}
 
 };
@@ -114,10 +128,21 @@ public:
 class Slope_Top_Tile : public Ground_Tile {
 public:
 	Slope_Top_Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false)
-		: Ground_Tile(id_, texture_, pos_, flip_,
-		std::vector<Point2f> { Point2f(0.0f, tile_size.y / 2), Point2f(tile_size.x, 0.0f),
-						  Point2f(tile_size.x, tile_size.y), Point2f(0.0f, tile_size.y) })
+		: Ground_Tile(id_, texture_, pos_, flip_)
 	{
+		collide_clear();
+		if (flip_) {
+			add_point(0.0f, 0.0f);
+			add_point(tile_size.x, tile_size.y / 2);
+			add_point(tile_size.x, tile_size.y);
+			add_point(0.0f, tile_size.y);
+		}
+		else {
+			add_point(0.0f, tile_size.y / 2);
+			add_point(tile_size.x, 0.0f);
+			add_point(tile_size.x, tile_size.y);
+			add_point(0.0f, tile_size.y);
+		}
 	}
 
 };
@@ -128,11 +153,11 @@ class Mars_Rock_Tile : public Tile {
 
 public:
 	Mars_Rock_Tile(int id_, std::string texture_, const Point2f &pos_)
-		: Tile(id_, texture_, pos_, false, std::vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(tile_size.x, 0.0f),
-		Point2f(tile_size.x, tile_size.y), Point2f(0.0f, tile_size.y) }),
+		: Tile(id_, texture_, pos_, false),
 		texture(texture_),
 		ckpt(false)
 	{
+		collide_init_box(tile_size);
 	}
 
 	void Mars_Rock_Tile::collide(Collidable *c) override {

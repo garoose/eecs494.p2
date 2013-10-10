@@ -68,8 +68,8 @@ void Buggy::collide(Collidable *c) {
 }
 
 void Buggy::explode() {
-	play_sound("explode");
-	explosion.start();
+	//play_sound("explode");
+	//explosion.start();
 }
 
 void Buggy::collide_with_asteroid(Asteroid *a) {

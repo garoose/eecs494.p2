@@ -28,7 +28,6 @@ protected:
 public:
 	Game_Object(const Point2f &position_,
 		const Vector2f &size_,
-		const std::vector<Point2f> cbox_ = {},
 		const float &theta_ = 0.0f,
 		const float &speed_ = 0.0f,
 		const float &min_speed_ = 0.0f,
@@ -36,7 +35,6 @@ public:
 		const float &acceleration_ = 0.0f)
 		: m_position(position_),
 		m_size(size_),
-		Collidable(cbox_),
 		m_theta(theta_),
 		m_speed(speed_),
 		m_min_speed(min_speed_),

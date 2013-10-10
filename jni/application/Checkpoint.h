@@ -18,10 +18,12 @@ private:
 public:
 
 	Checkpoint::Checkpoint(const Point2f &pos, Map *m)
-		: Game_Object(pos, ckptsize, std::vector<Point2f> { Point2f(), Point2f(ckptsize.x, 0.0f), Point2f(ckptsize.x, ckptsize.y), Point2f(0.0f, ckptsize.y) }),
+		: Game_Object(pos, ckptsize),
 		map(m),
 		col(get_Colors()["white"])
-	{}
+	{
+		collide_init_box(ckptsize);
+	}
 
 	void Checkpoint::render() const override {
 		Line_Segment<Vertex2f_Color> l(Vertex2f_Color(get_position(), col), Vertex2f_Color(get_position() + get_size(), col));

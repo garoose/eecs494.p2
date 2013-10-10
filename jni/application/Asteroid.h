@@ -1,7 +1,6 @@
 #pragma once
 
 #include <zenilib.h>
-#include <vector>
 #include <string>
 
 #include "Game_Object.h"
@@ -10,7 +9,6 @@
 extern std::string test;
 
 using namespace Zeni;
-using std::vector;
 
 class Asteroid : public Game_Object {
 	std::string texture;
@@ -23,11 +21,11 @@ public:
 		const float &theta_,
 		const float &speed_)
 		: Game_Object(position_, size_,
-		vector<Point2f> { Point2f(0.0f, 0.0f), Point2f(size_.x, 0.0f), Point2f(size_.x, size_.y), Point2f(0.0f, size_.y) },
 		theta_, speed_),
 		texture("asteroid"),
 		ckpt(false)
-		{	
+		{
+			collide_init_box(size_);
 		}
 
 	void Asteroid::render() const override {
