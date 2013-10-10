@@ -185,6 +185,7 @@ private:
 		Widget_Gamestate::render();
 
 		Zeni::Font &fr = get_Fonts()["system_36_x600"];
+		Zeni::Font &frt = get_Fonts()["title_small"];
 
 		fr.render_text(
 			"Use the left and right arrows or A and D\n to adjust the Buggy's speed\n\n"
@@ -198,10 +199,15 @@ private:
 #else
 			"Ctrl+Q"
 #endif
-			" to Quit\n\n\n"
-
-			"Press escape to return to the main menu",
+			" to Quit\n\n\n\n\n\n"
+			
+			"(F1 - show collision boxes, F2 - toggle buggy explosions)",
 			Point2f(400.0f, 100.0f - 0.5f * fr.get_text_height()),
+			get_Colors()["red"],
+			ZENI_CENTER);
+
+		frt.render_text("Press escape to return\nto the main menu",
+			Point2f(400.0f, 400.0f - 0.05f * fr.get_text_height()),
 			get_Colors()["title_text"],
 			ZENI_CENTER);
 	}

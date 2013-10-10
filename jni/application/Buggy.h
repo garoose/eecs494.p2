@@ -62,6 +62,7 @@ private:
 	Tire right_tire;
 	std::string texture;
 	Chronometer<Time> explosion;
+	bool explode_on;
 	Score *m_score;
 
 public:
@@ -77,6 +78,7 @@ public:
 		left_tire(64.0f, (3 * Global::pi / 4), (get_radius() - 60.0f), this, m_score),
 		right_tire(64.0f, (Global::pi / 4), (get_radius() - 60.0f), this, m_score),
 		texture("buggy"),
+		explode_on(true),
 		m_score(score_)
 	{
 		add_point(30.0f, 35.0f);

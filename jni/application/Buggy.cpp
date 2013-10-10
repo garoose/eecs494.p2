@@ -68,8 +68,10 @@ void Buggy::collide(Collidable *c) {
 }
 
 void Buggy::explode() {
-	//play_sound("explode");
-	//explosion.start();
+	if (explode_on) {
+		play_sound("explode");
+		explosion.start();
+	}
 }
 
 void Buggy::collide_with_asteroid(Asteroid *a) {
@@ -190,6 +192,10 @@ void Buggy::render_collisions(Map *m) {
 
 void Buggy::on_key(const SDL_KeyboardEvent &event) {
 	switch (event.keysym.sym) {
+	case SDLK_F2:
+		if (event.type == SDL_KEYDOWN)
+			explode_on = !explode_on;
+		break;
 	case SDLK_LEFT:
 	case SDLK_a:
 		m_controls.left = event.type == SDL_KEYDOWN;
