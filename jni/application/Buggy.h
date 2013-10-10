@@ -87,7 +87,7 @@ public:
 		add_point(30.0f, size_.y - 20.f);
 	}
 
-	const float &get_score() const { return m_score->get_score(); }
+	int get_score() const { return m_score->get_score(); }
 
 	bool Buggy::check_collision(const Vector2f &delta, Collidable *c);
 

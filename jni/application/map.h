@@ -17,15 +17,16 @@ private:
 	std::vector<std::vector<Tile *>> map;
 	std::vector<Game_Object *> list;
 
-	const float buffer = 100.0f; //how far off the screen to stop rendering objects
+	const float buffer; //how far off the screen to stop rendering objects
 
 public:
 	Map::Map()
+		: buffer(100.0f)
 	{
 	}
 
 	Map::Map(std::string filename)
-		: Map()
+		: buffer(100.0f)
 	{
 		load(filename);
 	}

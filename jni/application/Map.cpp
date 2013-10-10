@@ -31,19 +31,21 @@ Map::~Map() {
 		}
 	}
 
-	for each (Game_Object *o in list) {
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		Game_Object *o = (*it);
 		delete o;
 	}
 }
 
 void Map::checkpoint(const Point2f &pos) {
-	for (unsigned int x = 0; x < int(floor((pos.x / tile_size.x))) && x < map[0].size(); x++) {
+	for (unsigned int x = 0; x < unsigned int(floor((pos.x / tile_size.x))) && x < map[0].size(); x++) {
 		for (unsigned int y = 0; y < map.size(); y++) {
 			get(x, y)->checkpoint();
 		}
 	}
 
-	for each (Game_Object *o in list) {
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		Game_Object *o = (*it);
 		if (o->get_position().x <= pos.x)
 			o->checkpoint(pos);
 	}
@@ -56,7 +58,8 @@ void Map::reset() {
 		}
 	}
 
-	for each (Game_Object *o in list) {
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		Game_Object *o = (*it);
 		o->reset();
 	}
 }
@@ -149,7 +152,8 @@ bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
 		}
 	}
 
-	for each (Game_Object *o in list) {
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		Game_Object *o = (*it);
 		if (!o->is_gone())
 			c->check_collision(c->get_position() + delta_, c->get_theta(), o);
 	}
@@ -171,7 +175,8 @@ void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b, 
 		}
 	}
 
-	for each (Game_Object *o in list) {
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		Game_Object *o = (*it);
 		float x = o->get_position().x;
 		if (!o->is_gone() && x >= top_left.x - buffer && x <= top_left.x + game_resolution.x + buffer) {
 			o->render();
@@ -182,7 +187,8 @@ void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b, 
 }
 
 void Map::step_all(const float &time_step, Vector2f game_resolution, Point2f top_left) {
-	for each (Game_Object *o in list) {
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		Game_Object *o = (*it);
 		float x = o->get_position().x;
 		if (!o->is_gone() && x >= top_left.x - buffer && x <= top_left.x + game_resolution.x + buffer)
 			o->step(time_step, this);
