@@ -74,14 +74,14 @@ public:
 		return false;
 	}
 
-	void Asteroid::checkpoint() {
+	void Asteroid::checkpoint(const Point2f &pos) {
 		ckpt = true;
 		remove.stop();
 		if (remove.seconds())
 			gone = true;
 		remove.reset();
 
-		Game_Object::checkpoint();
+		Game_Object::checkpoint(pos);
 	}
 
 	void Asteroid::reset() override {

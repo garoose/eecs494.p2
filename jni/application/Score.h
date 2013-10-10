@@ -31,6 +31,10 @@ public:
 		score += amt;
 	}
 
+	int Score::get_score() {
+		return score;
+	}
+
 	void checkpoint() {
 		ckpt = score;
 	}

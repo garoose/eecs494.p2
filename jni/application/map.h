@@ -36,10 +36,11 @@ public:
 
 	void Map::checkpoint(const Point2f &pos);
 	void Map::reset();
+	void Map::end_level(const float &score);
 
 	bool Map::check_collision(Collidable *c, const Vector2f &delta_ = Vector2f(0.0f,0.0f));
 
-	void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b);
+	void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b, bool show_cboxes);
 	void Map::step_all(const float &time_step, Vector2f game_resolution, Point2f top_left);
 
 	Tile *Map::get(int x, int y) const;

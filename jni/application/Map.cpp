@@ -15,6 +15,8 @@
 
 #include "Asteroid.h"
 #include "Checkpoint.h"
+#include "Endpoint.h"
+#include "End_State.h"
 
 using std::vector;
 using std::string;
@@ -35,7 +37,7 @@ Map::~Map() {
 }
 
 void Map::checkpoint(const Point2f &pos) {
-	for (unsigned int x = 0; x < pos.x && x < map[0].size(); x++) {
+	for (unsigned int x = 0; x < int(floor((pos.x / tile_size.x))) && x < map[0].size(); x++) {
 		for (unsigned int y = 0; y < map.size(); y++) {
 			get(x, y)->checkpoint();
 		}
@@ -43,7 +45,7 @@ void Map::checkpoint(const Point2f &pos) {
 
 	for each (Game_Object *o in list) {
 		if (o->get_position().x <= pos.x)
-			o->checkpoint();
+			o->checkpoint(pos);
 	}
 }
 
@@ -57,6 +59,10 @@ void Map::reset() {
 	for each (Game_Object *o in list) {
 		o->reset();
 	}
+}
+
+void Map::end_level(const float &score) {
+	get_Game().push_state(new End_State(score));
 }
 
 Tile *Map::get(int x, int y) const {
@@ -113,7 +119,10 @@ void Map::load(string filename) {
 				Vector2f(stof(words[3]), stof(words[4])), Global::pi * stof(words[5]), stof(words[6])));
 		}
 		else if (words[0] == "checkpoint") {
-			list.push_back(new Checkpoint(Point2f(stof(words[1]), 0.0f), this));
+			list.push_back(new Checkpoint(Point2f(stof(words[1]), stof(words[2])), this));
+		}
+		else if (words[0] == "endpoint") {
+			list.push_back(new Endpoint(Point2f(stof(words[1]), 0.0f), this));
 		}
 
 	}
@@ -127,11 +136,11 @@ bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
 
 	bool ret = false;
 
-	for (float x = cx - tile_size.x; x < cx + c->get_size().x + tile_size.x; x += tile_size.x) {
-		for (float y = cy - tile_size.y; y < cy + c->get_size().y + tile_size.y; y += tile_size.y) {
+	for (float x = cx; x < cx + c->get_size().x; x += tile_size.x) {
+		for (float y = cy; y < cy + c->get_size().y; y += tile_size.y) {
 			//Find the relevant tile to collide with
 			unsigned int tx = int(floor(x / tile_size.x));
-			unsigned int ty = int(floor(y / tile_size.y));
+			unsigned int ty = int(floor((y + tile_size.y) / tile_size.y));
 
 			if ((map.size() > ty) && (map[0].size() > tx)) {
 				if (c->check_collision(c->get_position() + delta_, c->get_theta(), get(tx, ty)))
@@ -148,7 +157,7 @@ bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
 	return ret;
 }
 
-void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) {
+void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b, bool show_cboxes = false) {
 	for (float x = top_left.x; x < (top_left.x + game_resolution.x + tile_size.x); x += tile_size.x) {
 		for (float y = top_left.y; y < (top_left.y + game_resolution.y + tile_size.y); y += tile_size.y) {
 			unsigned int tx = int(floor((x) / tile_size.x));
@@ -156,7 +165,8 @@ void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) 
 
 			if ((map.size() > ty) && (map[0].size() > tx)) {
 				get(tx, ty)->render();
-				get(tx, ty)->Collidable::render(nullptr);
+				if (show_cboxes)
+					get(tx, ty)->Collidable::render(nullptr);
 			}
 		}
 	}
@@ -165,7 +175,8 @@ void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b) 
 		float x = o->get_position().x;
 		if (!o->is_gone() && x >= top_left.x - buffer && x <= top_left.x + game_resolution.x + buffer) {
 			o->render();
-			o->render_collisions(this);
+			if (show_cboxes)
+				o->render_collisions(this);
 		}
 	}
 }

@@ -160,3 +160,12 @@ public:
 		}
 	}
 };
+
+class Water_Tile : public Tile {
+public:
+	Water_Tile(int id_, std::string texture_, const Point2f &pos_, bool flip_ = false)
+		: Tile(id_, texture_, pos_, flip_)
+	{
+	}
+
+};

@@ -18,8 +18,6 @@
 using namespace std;
 using namespace Zeni;
 
-//Global score variable
-Score m_score;
 std::string test;
 
 class Play_State : public Gamestate_Base
@@ -45,6 +43,7 @@ public:
 	  set_pausable(true);
 
 	  m_score.reset();
+	  show_cboxes = false;
   }
 
 private:
@@ -54,6 +53,9 @@ private:
   float map_scroll_speed;
 
   Buggy m_buggy;
+  Score m_score;
+
+  bool show_cboxes;
 
 
   void on_push() {
@@ -62,10 +64,12 @@ private:
     //get_Game().joy_mouse.enabled = false;
 
 	m_chrono.start();
+	get_Sound().play_BGM();
   }
 
   void on_pop() {
 	m_chrono.stop();
+	get_Sound().stop_BGM();
 
     //get_Window().mouse_grab(false);
     get_Window().mouse_hide(false);
@@ -79,6 +83,13 @@ private:
   float m_max_time_steps; //< Optional
 
   void Play_State::on_key(const SDL_KeyboardEvent &event) {
+	  switch (event.keysym.sym) {
+	  case SDLK_F1:
+		  if (event.type == SDL_KEYDOWN)
+			show_cboxes = !show_cboxes;
+		  break;
+	  }
+
 	  m_buggy.on_key(event);
 
 	  Gamestate_Base::on_key(event);
@@ -127,7 +138,7 @@ private:
 
   void Play_State::render_bg()
   {
-	  map1.render_all(game_resolution, top_left, &m_buggy);
+	  map1.render_all(game_resolution, top_left, &m_buggy, show_cboxes);
   }
 
   void Play_State::render() {
@@ -138,61 +149,62 @@ private:
 	  render_bg();
 
 	  m_buggy.render();
-	  m_buggy.render_collisions(&map1);
+	  if (show_cboxes)
+		m_buggy.render_collisions(&map1);
 
 	  m_score.render(top_left);
 
-	  Zeni::Font &fr = get_Fonts()["title"];
-
+	  //For debugging
+	  /*Zeni::Font &fr = get_Fonts()["title"];
 	  fr.render_text(
 		  test.c_str(),
 		  Point2f(top_left.x + 100.0f + 0.5f * fr.get_text_width(test.c_str()), top_left.y + 400.0f - 0.5f * fr.get_text_height()),
 		  get_Colors()["title_text"],
-		  ZENI_CENTER);
+		  ZENI_CENTER);*/
   }
 
 };
 
 class Instructions_State : public Widget_Gamestate {
-  Instructions_State(const Instructions_State &);
-  Instructions_State operator=(const Instructions_State &);
+	Instructions_State(const Instructions_State &);
+	Instructions_State operator=(const Instructions_State &);
 
 public:
-  Instructions_State()
-    : Widget_Gamestate(make_pair(Point2f(0.0f, 0.0f), Point2f(800.0f, 600.0f)))
-  {
-  }
+	Instructions_State()
+		: Widget_Gamestate(make_pair(Point2f(0.0f, 0.0f), Point2f(800.0f, 600.0f)))
+	{
+	}
 
 private:
-  void on_key(const SDL_KeyboardEvent &event) {
-    if(event.keysym.sym == SDLK_ESCAPE && event.state == SDL_PRESSED)
-      get_Game().pop_state();
-  }
+	void on_key(const SDL_KeyboardEvent &event) {
+		if (event.keysym.sym == SDLK_ESCAPE && event.state == SDL_PRESSED)
+			get_Game().pop_state();
+	}
 
-  void render() {
-    Widget_Gamestate::render();
+	void render() {
+		Widget_Gamestate::render();
 
-    Zeni::Font &fr = get_Fonts()["system_36_x600"];
+		Zeni::Font &fr = get_Fonts()["system_36_x600"];
 
-    fr.render_text(
-		"Use the left and right arrows or A and D\n to adjust the Buggy's speed\n\n"
-		"Press the up arrow or W to jump\n\n"
-		"Avoid crashing the buggy or being hit by asteroids!\n\n"
-		"Press "
+		fr.render_text(
+			"Use the left and right arrows or A and D\n to adjust the Buggy's speed\n\n"
+			"Press the up arrow or W to jump\n\n"
+			"Avoid crashing the buggy or being hit by asteroids!\n\n"
+			"Press "
 #if defined(_WINDOWS)
-        "ALT+F4"
+			"ALT+F4"
 #elif defined(_MACOSX)
-        "Apple+Q"
+			"Apple+Q"
 #else
-        "Ctrl+Q"
+			"Ctrl+Q"
 #endif
-        " to Quit\n\n\n"
-						   
-		"Press escape to go back to the main menu",
-                   Point2f(400.0f, 100.0f - 0.5f * fr.get_text_height()),
-                   get_Colors()["title_text"],
-                   ZENI_CENTER);
-  }
+			" to Quit\n\n\n"
+
+			"Press escape to return to the main menu",
+			Point2f(400.0f, 100.0f - 0.5f * fr.get_text_height()),
+			get_Colors()["title_text"],
+			ZENI_CENTER);
+	}
 };
 
 class Bootstrap {
@@ -208,7 +220,7 @@ class Bootstrap {
       get_Game().joy_mouse.enabled = true;
 
 
-	  get_Sound().set_BGM("sfx/cycle2_08");
+	  get_Sound().set_BGM("sfx/intro1.2");
 	  get_Sound().set_BGM_looping(true);
 	  //get_Sound().play_BGM();
 

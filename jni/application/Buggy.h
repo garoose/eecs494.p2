@@ -39,8 +39,6 @@ public:
 
 	void Tire::collide(Collidable *c) override;
 
-	void Tire::collide_with_rock(Mars_Rock_Tile *r) override;
-
 	void Tire::collect();
 
 	void Tire::attach(const Point2f &center, const float &forward);
@@ -54,8 +52,9 @@ public:
 	const Point2f &get_position() const override { return position; }
 	const float &get_theta() const override { return theta; }
 	const Vector2f &get_size() const { return size; }
+	const float &get_score() const;
 
-	void Tire::checkpoint();
+	void Tire::checkpoint(const Point2f &pos);
 };
 
 class Buggy : public Game_Object {
@@ -87,18 +86,18 @@ public:
 	{
 	}
 
+	const float &get_score() const { return m_score->get_score(); }
+
 	bool Buggy::check_collision(const Vector2f &delta, Collidable *c);
 
 	void Buggy::collide(Collidable *c) override;
 	void Buggy::explode();
-	void Buggy::collide_with_rock(Mars_Rock_Tile *r) override;
-	void Buggy::collide_with_ground(Ground_Tile *t) override;
 	void Buggy::collide_with_asteroid(Asteroid *a) override;
 
 	//collect a mars rock
 	void Buggy::collect();
 
-	void Buggy::checkpoint() override;
+	void Buggy::checkpoint(const Point2f &pos) override;
 
 	bool Buggy::can_move(const Vector2f &delta_, Map *m);
 

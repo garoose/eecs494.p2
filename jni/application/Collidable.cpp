@@ -16,8 +16,8 @@ void Collidable::render(const Point2f &pos, const float &theta, Collidable *c) {
 	unsigned int i, j = cbox.size() - 1;
 
 	for (i = 0; i < cbox.size(); j = i++) {
-		Point2f p0 = adjust_point(cbox[i], pos, theta);
-		Point2f p1 = adjust_point(cbox[j], pos, theta);
+		Point2f p0 = adjust_point(cbox[j], pos, theta);
+		Point2f p1 = adjust_point(cbox[i], pos, theta);
 
 		Color col = get_Colors()["yellow"];
 		if (c && c->check_collision(this))
@@ -63,8 +63,8 @@ bool Collidable::check_collision(const Point2f &pos, const float &theta, Collida
 	unsigned int i, j = cbox.size() - 1;
 
 	for (i = 0; i < cbox.size(); j = i++) {
-		Point2f p0 = adjust_point(cbox[i], pos, theta);
-		Point2f p1 = adjust_point(cbox[j], pos, theta);
+		Point2f p0 = adjust_point(cbox[j], pos, theta);
+		Point2f p1 = adjust_point(cbox[i], pos, theta);
 
 		//c->check_collision(p0, p1);
 
@@ -101,7 +101,7 @@ bool Collidable::check_collision(const Point2f &p1, const Point2f &p2) {
 	int i, j, nvert = cbox.size();
 
 	for (i = 0, j = nvert - 1; i < nvert; j = i++) {
-		if (edgeIntersection(p1, p2, adjust_point(cbox[i]), adjust_point(cbox[j])))
+		if (edgeIntersection(p1, p2, adjust_point(cbox[j]), adjust_point(cbox[i])))
 			return true;
 	}
 

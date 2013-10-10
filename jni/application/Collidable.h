@@ -14,6 +14,7 @@ class Ground_Tile;
 class Mars_Rock_Tile;
 class Asteroid;
 class Checkpoint;
+class Endpoint;
 
 class Collidable {
 private:
@@ -66,6 +67,7 @@ public:
 	virtual void Collidable::collide_with_tire(Tire *) {}
 	virtual void Collidable::collide_with_asteroid(Asteroid *) {}
 	virtual void Collidable::collide_with_checkpoint(Checkpoint *) {}
+	virtual void Collidable::collide_with_endpoint(Endpoint *) {}
 
 private:
 	float Collidable::liney(const Point2f &p0, const Point2f &p1, const float &x) const {
@@ -77,10 +79,10 @@ private:
 		Point2f p1 = p + pos;
 		Point2f center = get_center(p1);
 
-		Point2f ret(cos(theta) * (p1.x - center.x) - sin(theta) * (p1.y - center.y) + center.x,
-					sin(theta) * (p1.x - center.x) + cos(theta) * (p1.y - center.y) + center.y);
+		//Point2f ret(cos(theta) * (p1.x - center.x) - sin(theta) * (p1.y - center.y) + center.x,
+		//			sin(theta) * (p1.x - center.x) + cos(theta) * (p1.y - center.y) + center.y);
 
-		return ret;
+		return p1;
 	}
 
 	Point2f Collidable::adjust_point(const Point2f &p) {

@@ -31,4 +31,7 @@ HOWTO:  To convert between types, or to downmix to mono,
   <explode>
     <filepath>sfx/explode</filepath>
   </explode>
+  <end>
+    <filepath>sfx/end1</filepath>
+  </end>
 </Sounds>

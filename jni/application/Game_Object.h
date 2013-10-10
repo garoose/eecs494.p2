@@ -77,8 +77,8 @@ public:
 	float get_speed() { return m_speed; }
 	float get_acceleration() { return m_acceleration; }
 
-	virtual void checkpoint() {
-		reset_pos = get_position();
+	virtual void checkpoint(const Point2f &pos) {
+		reset_pos = pos;
 	}
 
 	virtual void reset() {

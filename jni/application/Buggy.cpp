@@ -23,10 +23,6 @@ void Tire::collide(Collidable *c) {
 	c->collide_with_tire(this);
 }
 
-void Tire::collide_with_rock(Mars_Rock_Tile *r) {
-	m_buggy->collide_with_rock(r);
-}
-
 void Tire::collect() {
 	m_buggy->collect();
 }
@@ -52,8 +48,12 @@ void Tire::render() const {
 	vr.render(quad);
 }
 
-void Tire::checkpoint() {
-	m_buggy->checkpoint();
+const float &Tire::get_score() const {
+	return m_buggy->get_score();
+}
+
+void Tire::checkpoint(const Point2f &pos) {
+	m_buggy->checkpoint(pos);
 }
 
 
@@ -72,16 +72,6 @@ void Buggy::explode() {
 	explosion.start();
 }
 
-void Buggy::collide_with_rock(Mars_Rock_Tile *r) {
-	m_score->inc(100);
-	r->collect();
-	collect();
-}
-
-void Buggy::collide_with_ground(Ground_Tile *t) {
-	explode();
-}
-
 void Buggy::collide_with_asteroid(Asteroid *a) {
 	a->explode();
 	explode();
@@ -91,14 +81,16 @@ void Buggy::collect() {
 	m_score->inc(100);
 }
 
-void Buggy::checkpoint() {
-	Game_Object::checkpoint();
+void Buggy::checkpoint(const Point2f &pos) {
+	m_score->checkpoint();
+
+	Game_Object::checkpoint(pos);
 }
 
 bool Buggy::can_move(const Vector2f &delta_, Map *m) {
 	attach_wheels();
 
-	if (m->check_collision(this, delta_) || m->check_collision(&left_tire, delta_) || m->check_collision(&right_tire, delta_))
+	if (m->check_collision(&left_tire, delta_) || m->check_collision(&right_tire, delta_))// || m->check_collision(this, delta_))
 		return false;
 
 	return Game_Object::can_move(delta_, m);
@@ -112,8 +104,11 @@ void Buggy::step(const float &time_step, Map *m) {
 		m->reset();
 		m_score->reset();
 	}
+
 	if (explosion.seconds())
 		return;
+
+	m->check_collision(this);
 
 	bool leftcdown = m->check_collision(&left_tire, Vector2f(0.0f, time_step * gravity));
 	bool rightcdown = m->check_collision(&right_tire, Vector2f(0.0f, time_step * gravity));

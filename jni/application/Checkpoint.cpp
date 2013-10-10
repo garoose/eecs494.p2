@@ -4,11 +4,13 @@
 #include "Buggy.h"
 
 void Checkpoint::collide_with_buggy(Buggy *b) {
-	b->checkpoint();
+	col = get_Colors()["green"];
+	b->checkpoint(get_position());
 	map->checkpoint(get_position());
 }
 
 void Checkpoint::collide_with_tire(Tire *t) {
-	t->checkpoint();
+	col = get_Colors()["green"];
+	t->checkpoint(get_position());
 	map->checkpoint(get_position());
 }
