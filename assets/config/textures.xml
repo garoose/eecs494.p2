@@ -98,9 +98,13 @@ The following things are unsupported:
     <tile>0</tile>
   </asteroid_broken>
   <water>
-    <filepath>textures/water.png</filepath>
+    <filepath>textures/water4.png</filepath>
     <tile>1</tile>
   </water>
+  <water2>
+    <filepath>textures/water4.png</filepath>
+    <tile>1</tile>
+  </water2>
 
   <!--
   <one>

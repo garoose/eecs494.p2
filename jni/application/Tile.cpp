@@ -92,6 +92,8 @@ Tile *Tile::make_tile(int id_, const Point2f &pos_) {
 		return new Slope_Top_Tile(id_, "slope_top", pos_, true);
 	case 10:
 		return new Water_Tile(id_, "water", pos_);
+	case 11:
+		return new Water_Tile(id_, "water2", pos_);
 	default:
 		return nullptr;
 	}
