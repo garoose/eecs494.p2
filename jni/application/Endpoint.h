@@ -24,7 +24,11 @@ public:
 	}
 
 	void Endpoint::render() const override {
+		Color col = get_Colors()["black"];
+		Line_Segment<Vertex2f_Color> l(Vertex2f_Color(get_position(), col), Vertex2f_Color(get_position() + get_size(), col));
+		get_Video().render(l);
 	}
+
 	void Endpoint::step(const float &, Map *) override {}
 
 	void Endpoint::collide(Collidable *c) override {

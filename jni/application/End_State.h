@@ -10,7 +10,7 @@ class End_State : public Widget_Gamestate {
 	End_State(const End_State &);
 	End_State operator=(const End_State &);
 
-	float score;
+	int score;
 
 public:
 	End_State(const float &score_)
@@ -39,10 +39,10 @@ private:
 
 		fr.render_text(
 			"You win!!!\n\n"
-			"Final Score: " + ftoa(score) + "\n\n"
+			"Final Score: " + itoa(score) + "\n\n"
 			"Press escape to return\nto the main menu",
 			Point2f(400.0f, 100.0f - 0.5f * fr.get_text_height()),
-			get_Colors()["title_text"],
+			get_Colors()["red"],
 			ZENI_CENTER);
 	}
 };

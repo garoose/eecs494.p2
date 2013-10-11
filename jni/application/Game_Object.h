@@ -92,7 +92,7 @@ public:
 		m_theta += theta_;
 
 		while (!can_move(Vector2f(0.0f, 0.0f), m)) {
-			m_theta += theta_ < 0 ? 0.001f : -0.001f;
+			m_theta += theta_ < 0 ? 0.005f : -0.005f;
 
 			if (m_theta <= start)
 				break;

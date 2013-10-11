@@ -139,14 +139,14 @@ bool Map::check_collision(Collidable *c, const Vector2f &delta_) {
 
 	bool ret = false;
 
-	for (float x = cx; x < cx + c->get_size().x; x += tile_size.x) {
+	for (float x = cx; x <= cx + c->get_size().x; x += tile_size.x) {
 		for (float y = cy; y <= cy + c->get_size().y; y += tile_size.y) {
 			//Find the relevant tile to collide with
-			unsigned int tx = int(floor(x / tile_size.x));
-			unsigned int ty = int(floor((y + tile_size.y) / tile_size.y));
+			unsigned int tx = int(floor((x) / tile_size.x));
+			unsigned int ty = int(floor((y) / tile_size.y));
 
 			if ((map.size() > ty) && (map[0].size() > tx)) {
-				if (c->check_collision(c->get_position() + delta_, c->get_theta(), get(tx, ty)))
+				if (c->check_collision(Point2f(cx, cy), c->get_theta(), get(tx, ty)))
 					ret = true;
 			}
 		}
@@ -169,7 +169,7 @@ void Map::render_all(Vector2f game_resolution, Point2f top_left, Collidable *b, 
 
 			if ((map.size() > ty) && (map[0].size() > tx)) {
 				get(tx, ty)->render();
-				if (show_cboxes)
+				if (show_cboxes && !get(tx, ty)->is_gone())
 					get(tx, ty)->Collidable::render(nullptr);
 			}
 		}

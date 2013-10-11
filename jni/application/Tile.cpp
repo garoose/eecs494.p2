@@ -45,6 +45,7 @@ void Tile::render() const
 }
 
 void Ground_Tile::collide_with_asteroid(Asteroid *a) {
+	a->explode();
 	change_texture("sky");
 	gone = true;
 }

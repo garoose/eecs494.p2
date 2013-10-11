@@ -54,9 +54,7 @@ public:
 		if (remove.seconds() == 0)
 			move_forward(time_step * get_speed(), m);
 
-		if (m->check_collision(this)) {
-			explode();
-		}
+		m->check_collision(this);
 
 		if (remove.seconds() >= 1.0f) {
 			gone = true;

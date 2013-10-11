@@ -30,7 +30,17 @@ public:
 		m_buggy(buggy_),
 		m_score(score_)
 	{
-		collide_init_box(size);
+		float corner = 10.0f;
+		add_point(corner, corner);
+		add_point(size.x / 2, 0.0f);
+		add_point(size.x - corner, corner);
+		add_point(size.x, size.y / 2);
+		add_point(size.x - corner, size.y - corner);
+		add_point(size.x, size.y / 2);
+		add_point(size.x - corner, size.y - corner);
+		add_point(size.x / 2, size.y);
+		add_point(corner, size.y - corner);
+		add_point(0.0f, size.y / 2);
 	}
 
 	bool Tire::check_collision(const Vector2f &delta, Collidable *c);
@@ -81,10 +91,10 @@ public:
 		explode_on(true),
 		m_score(score_)
 	{
-		add_point(30.0f, 35.0f);
+		add_point(40.0f, 35.0f);
 		add_point(size_.x - 100.0f, 35.0f);
-		add_point(size_.x - 20.0f, size_.y - 20.0f);
-		add_point(30.0f, size_.y - 20.f);
+		add_point(size_.x - 25.0f, size_.y - 20.0f);
+		add_point(40.0f, size_.y - 25.f);
 	}
 
 	int get_score() const { return m_score->get_score(); }

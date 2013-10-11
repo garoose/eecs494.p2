@@ -25,6 +25,26 @@ void Collidable::render(const Point2f &pos, const float &theta, Collidable *c) {
 
 		Line_Segment<Vertex2f_Color> l(Vertex2f_Color(p0, col), Vertex2f_Color(p1, col));
 		get_Video().render(l);
+
+		//check for collisions along each line segment
+		col = get_Colors()["purple"];
+
+		/*if (p0.x == p1.x) {
+			Point2f start = p0.y > p1.y ? p1 : p0;
+			Point2f end = p0.y > p1.y ? p0 : p1;
+			for (Point2f pp = start; pp.y <= end.y; pp.y++) {
+				Line_Segment<Vertex2f_Color> ll(Vertex2f_Color(pp, col), Vertex2f_Color(Point2f(pp.x, pp.y - 10.0f), col));
+				get_Video().render(ll);
+			}
+		}
+		else {
+			Point2f start = p0.x > p1.x ? p1 : p0;
+			Point2f end = p0.x > p1.x ? p0 : p1;
+			for (Point2f pp = start; pp.x <= end.x; pp.x += 1, pp.y = liney(p0, p1, pp.x)) {
+				Line_Segment<Vertex2f_Color> ll(Vertex2f_Color(pp, col), Vertex2f_Color(Point2f(pp.x, pp.y - 10.0f), col));
+				get_Video().render(ll);
+			}
+		}*/
 	}
 }
 
@@ -81,7 +101,7 @@ bool Collidable::check_collision(const Point2f &pos, const float &theta, Collida
 		} else {
 			Point2f start = p0.x > p1.x ? p1 : p0;
 			Point2f end = p0.x > p1.x ? p0 : p1;
-			for (Point2f pp = start; pp.x <= end.x && pp.y <= end.y; pp.x += 1, pp.y = liney(p0, p1, pp.x)) {
+			for (Point2f pp = start; pp.x <= end.x; pp.x += 1, pp.y = liney(p0, p1, pp.x)) {
 				if (c->check_collision(pp)) {
 					collide(c);
 					return true;

@@ -30,6 +30,8 @@ public:
 	{
 	}
 
+	bool Tile::is_gone() { return gone; }
+
 	static Tile *Tile::make_tile(int id_, const Point2f &pos_);
 
 	void Tile::render() const;
